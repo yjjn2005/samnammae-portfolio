@@ -2,156 +2,188 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>삼남매 포트폴리오 대시보드</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
-  :root {
-    --haein: #6366f1;
-    --haein-light: #e0e7ff;
-    --jiwon: #10b981;
-    --jiwon-light: #d1fae5;
-    --taehyun: #f59e0b;
-    --taehyun-light: #fef3c7;
-    --bg: #f8fafc;
-    --card: #ffffff;
-    --text: #1e293b;
-    --sub: #64748b;
-    --border: #e2e8f0;
-    --red: #ef4444;
-    --green: #10b981;
-    --radius: 12px;
-  }
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: 'Segoe UI', -apple-system, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+:root{--haein:#6366f1;--haein-light:#e0e7ff;--jiwon:#10b981;--jiwon-light:#d1fae5;--taehyun:#f59e0b;--taehyun-light:#fef3c7;--bg:#f8fafc;--card:#fff;--text:#1e293b;--sub:#64748b;--border:#e2e8f0;--red:#ef4444;--blue:#3b82f6;--radius:12px;--shadow:0 2px 12px rgba(0,0,0,.07)}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',-apple-system,sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
 
-  /* Header */
-  .header { background: linear-gradient(135deg, #1e293b 0%, #334155 100%); color: white; padding: 20px 24px; display: flex; justify-content: space-between; align-items: center; }
-  .header h1 { font-size: 22px; font-weight: 700; }
-  .header .date { font-size: 13px; opacity: 0.7; margin-top: 3px; }
-  .header-right { text-align: right; font-size: 13px; opacity: 0.8; }
+/* ─── HEADER ─── */
+.header{background:linear-gradient(135deg,#1e293b,#334155);color:#fff;padding:16px 20px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px}
+.header h1{font-size:18px;font-weight:700}
+.header-sub{font-size:12px;opacity:.65;margin-top:2px}
+.header-right{display:flex;align-items:center;gap:10px;font-size:12px;opacity:.85}
+.btn-refresh{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);color:#fff;padding:6px 12px;border-radius:20px;cursor:pointer;font-size:12px;font-weight:600;transition:.2s}
+.btn-refresh:hover{background:rgba(255,255,255,.25)}
+.btn-refresh:disabled{opacity:.5;cursor:not-allowed}
 
-  /* Nav Tabs */
-  .nav { background: white; border-bottom: 1px solid var(--border); padding: 0 24px; display: flex; gap: 0; position: sticky; top: 0; z-index: 100; }
-  .nav-tab { padding: 14px 20px; font-size: 14px; font-weight: 600; cursor: pointer; border-bottom: 3px solid transparent; color: var(--sub); transition: all 0.2s; white-space: nowrap; }
-  .nav-tab:hover { color: var(--text); }
-  .nav-tab.active-haein { color: var(--haein); border-bottom-color: var(--haein); }
-  .nav-tab.active-jiwon { color: var(--jiwon); border-bottom-color: var(--jiwon); }
-  .nav-tab.active-taehyun { color: var(--taehyun); border-bottom-color: var(--taehyun); }
-  .nav-tab.active-compare { color: #8b5cf6; border-bottom-color: #8b5cf6; }
+/* ─── NAV ─── */
+.nav{background:#fff;border-bottom:1px solid var(--border);padding:0 16px;display:flex;overflow-x:auto;-webkit-overflow-scrolling:touch;position:sticky;top:0;z-index:100;scrollbar-width:none}
+.nav::-webkit-scrollbar{display:none}
+.nav-tab{padding:13px 16px;font-size:13px;font-weight:600;cursor:pointer;border-bottom:3px solid transparent;color:var(--sub);white-space:nowrap;transition:.2s;flex-shrink:0}
+.nav-tab.active-dashboard{color:#8b5cf6;border-color:#8b5cf6}
+.nav-tab.active-haein{color:var(--haein);border-color:var(--haein)}
+.nav-tab.active-jiwon{color:var(--jiwon);border-color:var(--jiwon)}
+.nav-tab.active-taehyun{color:var(--taehyun);border-color:var(--taehyun)}
 
-  /* Main Layout */
-  .main { padding: 20px 24px; max-width: 1400px; margin: 0 auto; }
+/* ─── MAIN ─── */
+.main{padding:16px;max-width:1300px;margin:0 auto}
+.page{display:none}.page.active{display:block}
 
-  /* Summary Cards Top */
-  .summary-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 20px; }
-  .summary-card { background: var(--card); border-radius: var(--radius); padding: 18px 20px; border: 1px solid var(--border); cursor: pointer; transition: transform 0.15s, box-shadow 0.15s; }
-  .summary-card:hover { transform: translateY(-2px); box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
-  .summary-card.haein { border-top: 4px solid var(--haein); }
-  .summary-card.jiwon { border-top: 4px solid var(--jiwon); }
-  .summary-card.taehyun { border-top: 4px solid var(--taehyun); }
-  .sc-name { font-size: 16px; font-weight: 700; margin-bottom: 10px; }
-  .sc-val { font-size: 24px; font-weight: 800; margin-bottom: 4px; }
-  .sc-sub { font-size: 12px; color: var(--sub); }
-  .sc-ret { font-size: 20px; font-weight: 700; margin-top: 8px; }
-  .sc-meta { display: flex; justify-content: space-between; margin-top: 8px; font-size: 12px; color: var(--sub); }
-  .up { color: var(--red); }
-  .down { color: #3b82f6; }
+/* ─── CARDS ─── */
+.card{background:var(--card);border-radius:var(--radius);border:1px solid var(--border);padding:18px;margin-bottom:14px;box-shadow:var(--shadow)}
+.card h3{font-size:12px;font-weight:700;color:var(--sub);text-transform:uppercase;letter-spacing:.5px;margin-bottom:14px}
 
-  /* Grid Layout */
-  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
-  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+/* ─── SUMMARY ROW ─── */
+.summary-row{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:14px}
+.sc{background:var(--card);border-radius:var(--radius);border:1px solid var(--border);padding:16px;cursor:pointer;transition:.15s;box-shadow:var(--shadow)}
+.sc:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(0,0,0,.1)}
+.sc.haein{border-top:4px solid var(--haein)}
+.sc.jiwon{border-top:4px solid var(--jiwon)}
+.sc.taehyun{border-top:4px solid var(--taehyun)}
+.sc-name{font-size:14px;font-weight:700;margin-bottom:8px}
+.sc-val{font-size:22px;font-weight:800}
+.sc-ret{font-size:17px;font-weight:700;margin-top:4px}
+.sc-meta{font-size:11px;color:var(--sub);margin-top:6px;display:flex;justify-content:space-between}
 
-  /* Card */
-  .card { background: var(--card); border-radius: var(--radius); border: 1px solid var(--border); padding: 20px; }
-  .card h3 { font-size: 14px; font-weight: 700; color: var(--sub); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 16px; }
+/* ─── FAMILY TOTAL ─── */
+.family-card{background:linear-gradient(135deg,#1e293b,#334155);color:#fff;border-radius:var(--radius);padding:20px;margin-bottom:14px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px}
+.family-total-val{font-size:28px;font-weight:800}
+.family-total-ret{font-size:16px;opacity:.8;margin-top:4px}
+.family-meta{display:flex;gap:24px;flex-wrap:wrap}
+.family-meta-item{text-align:center}
+.family-meta-item .label{font-size:11px;opacity:.6}
+.family-meta-item .val{font-size:15px;font-weight:700;margin-top:2px}
 
-  /* Stats Grid */
-  .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 16px; }
-  .stat-box { background: var(--card); border-radius: var(--radius); border: 1px solid var(--border); padding: 16px; text-align: center; }
-  .stat-label { font-size: 11px; color: var(--sub); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
-  .stat-value { font-size: 20px; font-weight: 800; }
-  .stat-sub { font-size: 11px; color: var(--sub); margin-top: 3px; }
+/* ─── SUMMARY TEXT ─── */
+.summary-text{font-size:13px;line-height:1.7;color:var(--text)}
+.summary-highlight{display:inline-block;background:var(--bg);border-radius:6px;padding:2px 8px;font-weight:700;font-size:12px;margin:2px}
 
-  /* Table */
-  .table-wrap { overflow-x: auto; }
-  table { width: 100%; border-collapse: collapse; font-size: 13px; }
-  th { background: var(--bg); padding: 10px 12px; text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--sub); border-bottom: 1px solid var(--border); white-space: nowrap; cursor: pointer; user-select: none; }
-  th:hover { color: var(--text); }
-  td { padding: 10px 12px; border-bottom: 1px solid var(--border); white-space: nowrap; }
-  tr:last-child td { border-bottom: none; }
-  tr:hover td { background: var(--bg); }
-  .badge { display: inline-block; padding: 2px 8px; border-radius: 20px; font-size: 11px; font-weight: 600; }
-  .badge-etf { background: #ede9fe; color: #7c3aed; }
-  .badge-stock { background: #fce7f3; color: #be185d; }
-  .badge-usetf { background: #dbeafe; color: #1d4ed8; }
-  .badge-cash { background: #f1f5f9; color: #475569; }
-  .badge-acct { background: var(--bg); color: var(--sub); border: 1px solid var(--border); }
+/* ─── STATS GRID ─── */
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px}
+.stat-box{background:var(--card);border-radius:var(--radius);border:1px solid var(--border);padding:14px;text-align:center}
+.stat-label{font-size:10px;color:var(--sub);text-transform:uppercase;letter-spacing:.4px;margin-bottom:5px}
+.stat-value{font-size:18px;font-weight:800}
 
-  /* Chart canvas containers */
-  .chart-container { position: relative; height: 220px; }
-  .chart-container-lg { position: relative; height: 300px; }
+/* ─── GRID ─── */
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
 
-  /* Account breakdown */
-  .acct-list { display: flex; flex-direction: column; gap: 8px; }
-  .acct-item { display: flex; align-items: center; gap: 10px; }
-  .acct-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
-  .acct-name { font-size: 13px; flex: 1; }
-  .acct-val { font-size: 13px; font-weight: 600; text-align: right; }
-  .acct-pct { font-size: 11px; color: var(--sub); text-align: right; width: 40px; }
-  .acct-bar-wrap { flex: 1; background: var(--bg); border-radius: 4px; height: 6px; overflow: hidden; }
-  .acct-bar { height: 100%; border-radius: 4px; }
+/* ─── CHART ─── */
+.chart-wrap{position:relative;height:200px}
+.chart-wrap-lg{position:relative;height:280px}
 
-  /* Comparison table */
-  .cmp-table table th:nth-child(1) { width: 160px; }
-  .cmp-cell-haein { background: var(--haein-light) !important; color: var(--haein); font-weight: 700; }
-  .cmp-cell-jiwon { background: var(--jiwon-light) !important; color: #065f46; font-weight: 700; }
-  .cmp-cell-taehyun { background: var(--taehyun-light) !important; color: #92400e; font-weight: 700; }
+/* ─── TABLE ─── */
+.table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{background:var(--bg);padding:9px 10px;text-align:left;font-size:10px;text-transform:uppercase;letter-spacing:.4px;color:var(--sub);border-bottom:1px solid var(--border);white-space:nowrap;cursor:pointer;user-select:none}
+th:hover{color:var(--text)}
+td{padding:9px 10px;border-bottom:1px solid var(--border);white-space:nowrap;vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:#fafbfc}
 
-  /* Page visibility */
-  .page { display: none; }
-  .page.active { display: block; }
+/* ─── BADGES ─── */
+.badge{display:inline-block;padding:2px 7px;border-radius:20px;font-size:10px;font-weight:700}
+.badge-etf{background:#ede9fe;color:#7c3aed}
+.badge-stock{background:#fce7f3;color:#be185d}
+.badge-usetf{background:#dbeafe;color:#1d4ed8}
+.badge-cash{background:#f1f5f9;color:#475569}
+.badge-acct{background:var(--bg);color:var(--sub);border:1px solid var(--border)}
+.badge-live{background:#dcfce7;color:#15803d;font-size:9px;padding:1px 5px}
 
-  /* Filter bar */
-  .filter-bar { display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; align-items: center; }
-  .filter-btn { padding: 5px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; border: 1px solid var(--border); background: white; cursor: pointer; transition: all 0.15s; }
-  .filter-btn.active, .filter-btn:hover { background: var(--text); color: white; border-color: var(--text); }
-  .filter-btn.active { }
+/* ─── FILTER BAR ─── */
+.filter-bar{display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap;align-items:center}
+.filter-btn{padding:4px 10px;border-radius:20px;font-size:11px;font-weight:600;border:1px solid var(--border);background:#fff;cursor:pointer;transition:.15s}
+.filter-btn.active,.filter-btn:hover{background:var(--text);color:#fff;border-color:var(--text)}
 
-  /* Top gain/loss table */
-  .rank-num { width: 28px; height: 28px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; }
-  .rank-1 { background: #fef08a; color: #713f12; }
-  .rank-2 { background: #e2e8f0; color: #334155; }
-  .rank-3 { background: #fed7aa; color: #7c2d12; }
+/* ─── EDIT BUTTONS ─── */
+.btn-edit{background:none;border:1px solid var(--border);color:var(--sub);padding:3px 8px;border-radius:6px;font-size:10px;cursor:pointer;transition:.15s}
+.btn-edit:hover{background:var(--haein);color:#fff;border-color:var(--haein)}
+.btn-del{background:none;border:1px solid #fecaca;color:var(--red);padding:3px 8px;border-radius:6px;font-size:10px;cursor:pointer;transition:.15s}
+.btn-del:hover{background:var(--red);color:#fff}
+.btn-add{background:var(--text);color:#fff;border:none;padding:7px 14px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;transition:.15s}
+.btn-add:hover{background:#334155}
+.btn-reset{background:none;border:1px solid var(--border);color:var(--sub);padding:7px 14px;border-radius:8px;font-size:12px;cursor:pointer}
 
-  /* Section title */
-  .section-title { font-size: 15px; font-weight: 700; margin-bottom: 12px; color: var(--text); }
+/* ─── ACCT LIST ─── */
+.acct-list{display:flex;flex-direction:column;gap:8px}
+.acct-item{display:flex;align-items:center;gap:8px}
+.acct-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0}
+.acct-name{font-size:12px;flex:1;font-weight:600}
+.acct-val{font-size:12px;font-weight:600}
+.acct-ret{font-size:11px;width:48px;text-align:right}
 
-  /* Responsive */
-  @media (max-width: 768px) {
-    .summary-row { grid-template-columns: 1fr; }
-    .stats-grid { grid-template-columns: repeat(2, 1fr); }
-    .grid-2, .grid-3 { grid-template-columns: 1fr; }
-    .main { padding: 12px 16px; }
-    .nav-tab { padding: 12px 14px; font-size: 13px; }
-  }
+/* ─── MODAL ─── */
+.modal-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.55);z-index:999;display:none;align-items:center;justify-content:center;padding:16px}
+.modal-overlay.open{display:flex}
+.modal-box{background:#fff;border-radius:16px;padding:24px;width:100%;max-width:480px;max-height:90vh;overflow-y:auto}
+.modal-title{font-size:16px;font-weight:800;margin-bottom:18px}
+.form-row{margin-bottom:12px}
+.form-row label{display:block;font-size:11px;font-weight:700;color:var(--sub);margin-bottom:4px;text-transform:uppercase}
+.form-row input,.form-row select{width:100%;padding:9px 12px;border:1px solid var(--border);border-radius:8px;font-size:13px;outline:none;transition:.15s}
+.form-row input:focus,.form-row select:focus{border-color:var(--haein)}
+.form-grid-2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.modal-actions{display:flex;gap:8px;margin-top:18px;justify-content:flex-end}
+.btn-modal-save{background:var(--haein);color:#fff;border:none;padding:9px 20px;border-radius:8px;font-weight:700;cursor:pointer;font-size:13px}
+.btn-modal-del{background:var(--red);color:#fff;border:none;padding:9px 20px;border-radius:8px;font-weight:700;cursor:pointer;font-size:13px}
+.btn-modal-cancel{background:var(--bg);color:var(--sub);border:1px solid var(--border);padding:9px 16px;border-radius:8px;cursor:pointer;font-size:13px}
+
+/* ─── TOAST ─── */
+.toast{position:fixed;bottom:20px;right:20px;background:#1e293b;color:#fff;padding:10px 18px;border-radius:10px;font-size:13px;font-weight:600;z-index:2000;transform:translateY(60px);opacity:0;transition:.3s}
+.toast.show{transform:translateY(0);opacity:1}
+
+/* ─── LOADING ─── */
+.loading-bar{height:3px;background:linear-gradient(90deg,var(--haein),var(--jiwon),var(--taehyun));position:fixed;top:0;left:0;right:0;z-index:9999;display:none;animation:loadanim 1.2s ease infinite}
+@keyframes loadanim{0%{opacity:1}50%{opacity:.4}100%{opacity:1}}
+
+/* ─── UP/DOWN ─── */
+.up{color:var(--red)}.down{color:var(--blue)}
+
+/* ─── MOBILE ─── */
+@media(max-width:700px){
+  .header h1{font-size:15px}
+  .summary-row{grid-template-columns:1fr}
+  .stats-grid{grid-template-columns:repeat(2,1fr)}
+  .grid-2,.grid-3{grid-template-columns:1fr}
+  .sc-val{font-size:18px}
+  .sc-ret{font-size:14px}
+  .family-total-val{font-size:22px}
+  /* Card-style table on mobile */
+  .mob-card thead{display:none}
+  .mob-card tbody tr{display:block;border:1px solid var(--border);border-radius:10px;margin-bottom:10px;padding:10px 12px;background:#fff}
+  .mob-card tbody td{display:flex;justify-content:space-between;align-items:center;padding:4px 0;border:none;font-size:12px;white-space:normal}
+  .mob-card tbody td::before{content:attr(data-label);color:var(--sub);font-size:10px;font-weight:700;text-transform:uppercase;flex-shrink:0;margin-right:8px}
+  .mob-card tbody td:first-child{font-size:13px;font-weight:700;margin-bottom:4px}
+  .modal-box{padding:18px}
+  .form-grid-2{grid-template-columns:1fr}
+}
+@media(max-width:400px){
+  .main{padding:10px}
+  .card{padding:14px}
+}
 </style>
 </head>
 <body>
 
+<div class="loading-bar" id="loading-bar"></div>
+
+<!-- HEADER -->
 <div class="header">
   <div>
     <h1>🏦 삼남매 포트폴리오 대시보드</h1>
-    <div class="date">기준일: 2026년 5월 28일</div>
+    <div class="header-sub">기준일: 2026-05-28 &nbsp;|&nbsp; <span id="live-badge" style="color:#86efac">● 정적 데이터</span></div>
   </div>
   <div class="header-right">
-    <div>USD/KRW 1,380</div>
-    <div>유해인 · 유지원 · 유태현</div>
+    <div id="usd-rate" style="font-size:11px">USD/KRW 1,380</div>
+    <button class="btn-refresh" onclick="fetchLivePrices()" id="btn-refresh">📡 실시간 시세</button>
   </div>
 </div>
 
+<!-- NAV -->
 <div class="nav">
-  <div class="nav-tab active-compare" id="tab-compare" onclick="showPage('compare')">📊 비교</div>
+  <div class="nav-tab active-dashboard" id="tab-dashboard" onclick="showPage('dashboard')">📊 대시보드</div>
   <div class="nav-tab" id="tab-haein" onclick="showPage('haein')">🔵 해인</div>
   <div class="nav-tab" id="tab-jiwon" onclick="showPage('jiwon')">🟢 지원</div>
   <div class="nav-tab" id="tab-taehyun" onclick="showPage('taehyun')">🟠 태현</div>
@@ -159,477 +191,482 @@
 
 <div class="main">
 
-  <!-- ==================== COMPARE PAGE ==================== -->
-  <div class="page active" id="page-compare">
-    <div class="summary-row" id="summary-cards"></div>
+<!-- ══════ DASHBOARD PAGE ══════ -->
+<div class="page active" id="page-dashboard">
+  <!-- Family total -->
+  <div class="family-card" id="family-card"></div>
 
-    <div class="grid-2">
-      <div class="card">
-        <h3>💰 총자산 비교</h3>
-        <div class="chart-container"><canvas id="chart-total"></canvas></div>
-      </div>
-      <div class="card">
-        <h3>📈 수익률 비교 (%)</h3>
-        <div class="chart-container"><canvas id="chart-return"></canvas></div>
-      </div>
-    </div>
+  <!-- 3 summary cards -->
+  <div class="summary-row" id="summary-cards"></div>
 
-    <div class="grid-3">
-      <div class="card">
-        <h3>🔵 해인 자산유형</h3>
-        <div class="chart-container"><canvas id="chart-haein-type"></canvas></div>
-      </div>
-      <div class="card">
-        <h3>🟢 지원 자산유형</h3>
-        <div class="chart-container"><canvas id="chart-jiwon-type"></canvas></div>
-      </div>
-      <div class="card">
-        <h3>🟠 태현 자산유형</h3>
-        <div class="chart-container"><canvas id="chart-taehyun-type"></canvas></div>
-      </div>
-    </div>
+  <!-- 3 strategy summaries -->
+  <div class="grid-3" id="strategy-cards"></div>
 
-    <div class="card" style="margin-bottom:16px">
-      <h3>📋 종합 비교표</h3>
-      <div class="table-wrap cmp-table">
-        <table id="compare-table"></table>
-      </div>
-    </div>
-
+  <!-- Charts -->
+  <div class="grid-2">
     <div class="card">
-      <h3>🏆 공통 보유 종목</h3>
-      <div class="table-wrap">
-        <table id="common-table"></table>
-      </div>
+      <h3>💰 총자산 비교 (억원)</h3>
+      <div class="chart-wrap"><canvas id="chart-total"></canvas></div>
+    </div>
+    <div class="card">
+      <h3>📈 수익률 비교</h3>
+      <div class="chart-wrap"><canvas id="chart-return"></canvas></div>
     </div>
   </div>
 
-  <!-- ==================== INDIVIDUAL PAGES ==================== -->
-  <div class="page" id="page-haein">
-    <div id="detail-haein"></div>
-  </div>
-  <div class="page" id="page-jiwon">
-    <div id="detail-jiwon"></div>
-  </div>
-  <div class="page" id="page-taehyun">
-    <div id="detail-taehyun"></div>
+  <!-- Type charts -->
+  <div class="grid-3">
+    <div class="card"><h3>🔵 해인 자산유형</h3><div class="chart-wrap"><canvas id="chart-haein-type"></canvas></div></div>
+    <div class="card"><h3>🟢 지원 자산유형</h3><div class="chart-wrap"><canvas id="chart-jiwon-type"></canvas></div></div>
+    <div class="card"><h3>🟠 태현 자산유형</h3><div class="chart-wrap"><canvas id="chart-taehyun-type"></canvas></div></div>
   </div>
 
+  <!-- Compare table -->
+  <div class="card">
+    <h3>📋 종합 비교표</h3>
+    <div class="table-wrap"><table id="compare-table"></table></div>
+  </div>
+
+  <!-- Common stocks -->
+  <div class="card">
+    <h3>🤝 공통 보유 종목</h3>
+    <div class="table-wrap"><table id="common-table"></table></div>
+  </div>
 </div>
 
+<!-- ══════ INDIVIDUAL PAGES ══════ -->
+<div class="page" id="page-haein"><div id="detail-haein"></div></div>
+<div class="page" id="page-jiwon"><div id="detail-jiwon"></div></div>
+<div class="page" id="page-taehyun"><div id="detail-taehyun"></div></div>
+
+</div><!-- /main -->
+
+<!-- EDIT MODAL -->
+<div class="modal-overlay" id="modal">
+  <div class="modal-box">
+    <div class="modal-title" id="modal-title">종목 편집</div>
+    <input type="hidden" id="m-key">
+    <input type="hidden" id="m-idx">
+    <div class="form-row"><label>종목명</label><input id="m-name" type="text" placeholder="예: ACE 미국S&P500"></div>
+    <div class="form-grid-2">
+      <div class="form-row"><label>증권사</label><input id="m-broker" type="text" placeholder="미래에셋증권"></div>
+      <div class="form-row"><label>계좌</label>
+        <select id="m-acct"><option>위탁</option><option>ISA</option><option>IRP</option><option>연금</option><option>해외위탁</option></select>
+      </div>
+    </div>
+    <div class="form-grid-2">
+      <div class="form-row"><label>자산유형</label>
+        <select id="m-type"><option>국내ETF</option><option>국내주식</option><option>미국ETF</option><option>미국주식</option><option>예금/현금</option></select>
+      </div>
+      <div class="form-row"><label>통화</label>
+        <select id="m-currency"><option>KRW</option><option>USD</option></select>
+      </div>
+    </div>
+    <div class="form-grid-2">
+      <div class="form-row"><label>종목코드</label><input id="m-code" type="text" placeholder="360200"></div>
+      <div class="form-row"><label>야후 티커</label><input id="m-ticker" type="text" placeholder="360200.KS"></div>
+    </div>
+    <div class="form-grid-2">
+      <div class="form-row"><label>보유수량</label><input id="m-qty" type="number" min="0" step="any" oninput="updateBuyAmt()"></div>
+      <div class="form-row"><label>매수단가</label><input id="m-buy-price" type="number" min="0" step="any" oninput="updateBuyAmt()"></div>
+    </div>
+    <div class="form-grid-2">
+      <div class="form-row"><label>매수금액 (자동계산)</label><input id="m-buy-amt" type="number" readonly style="background:#f8fafc;color:var(--sub)"></div>
+      <div class="form-row"><label>현재가</label><input id="m-cur-price" type="number" min="0" step="any"></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-modal-del" id="btn-modal-del" onclick="deleteHolding()" style="display:none">🗑 삭제</button>
+      <button class="btn-modal-cancel" onclick="closeModal()">취소</button>
+      <button class="btn-modal-save" onclick="saveHolding()">💾 저장</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
 <script>
-// ===================== DATA =====================
-const USD_KRW = 1380;
+// ═══════════════════════════════════════════
+// CONSTANTS & CONFIG
+// ═══════════════════════════════════════════
+let USD_KRW = 1380;
+const PROXY  = 'https://api.allorigins.win/get?url=';
+const YAHOO  = 'https://query2.finance.yahoo.com/v7/finance/quote?symbols=';
+const STORAGE_KEY = 'portfolio_v2';
+const COLORS = { haein:'#6366f1', jiwon:'#10b981', taehyun:'#f59e0b' };
+const NAMES  = { haein:'유해인', jiwon:'유지원', taehyun:'유태현' };
+const EMOJIS = { haein:'🔵', jiwon:'🟢', taehyun:'🟠' };
+const TYPE_COLORS = {'국내ETF':'#6366f1','국내주식':'#f43f5e','미국ETF':'#3b82f6','미국주식':'#0ea5e9','예금/현금':'#94a3b8'};
+const ACCT_COLORS = ['#6366f1','#10b981','#f59e0b','#f43f5e','#3b82f6','#8b5cf6','#06b6d4','#84cc16'];
 
-const RAW = {"해인": [{"no": 1, "broker": "미래에셋증권", "account": "위탁", "name": "ACE 미국S&P500", "code": "360200", "ticker": "360200.KS", "type": "국내ETF", "currency": "KRW", "qty": 139.0, "buy_price": 23366.0, "buy_amt": 3247935.0, "cur_price": 26490.0, "cur_val_krw": 3682110.0}, {"no": 2, "broker": "미래에셋증권", "account": "위탁", "name": "ACE 미국나스닥100", "code": "367380", "ticker": "367380.KS", "type": "국내ETF", "currency": "KRW", "qty": 97.0, "buy_price": 25636.0, "buy_amt": 2486720.0, "cur_price": 30555.0, "cur_val_krw": 2963835.0}, {"no": 3, "broker": "미래에셋증권", "account": "위탁", "name": "TIGER 미국테크TOP10 INDXX", "code": "381170", "ticker": "381170.KS", "type": "국내ETF", "currency": "KRW", "qty": 24.0, "buy_price": 29846.0, "buy_amt": 716310.0, "cur_price": 32510.0, "cur_val_krw": 780240.0}, {"no": 4, "broker": "미래에셋증권", "account": "위탁", "name": "SOL 미국배당다우존스", "code": "446720", "ticker": "446720.KS", "type": "국내ETF", "currency": "KRW", "qty": 58.0, "buy_price": 13001.0, "buy_amt": 754070.0, "cur_price": 13500.0, "cur_val_krw": 783000.0}, {"no": 5, "broker": "미래에셋증권", "account": "위탁", "name": "ACE 미국30년국채액티브(H)", "code": "453850", "ticker": "453850.KS", "type": "국내ETF", "currency": "KRW", "qty": 76.0, "buy_price": 7659.0, "buy_amt": 582065.0, "cur_price": 7500.0, "cur_val_krw": 570000.0}, {"no": 6, "broker": "미래에셋증권", "account": "위탁", "name": "미래에셋 원화예수금", "code": "-", "ticker": "-", "type": "예금/현금", "currency": "KRW", "qty": 0, "buy_price": 2500884.0, "buy_amt": 2500884.0, "cur_price": 2500884.0, "cur_val_krw": 0.0}, {"no": 7, "broker": "한국투자증권", "account": "위탁", "name": "두산에너빌리티", "code": "034020", "ticker": "034020.KS", "type": "국내주식", "currency": "KRW", "qty": 823.0, "buy_price": 35594.0, "buy_amt": 29294150.0, "cur_price": 128900.0, "cur_val_krw": 106084700.0}, {"no": 8, "broker": "한국투자증권", "account": "위탁", "name": "로보티즈", "code": "108490", "ticker": "108490.KQ", "type": "국내주식", "currency": "KRW", "qty": 385.0, "buy_price": 92226.0, "buy_amt": 35507300.0, "cur_price": 332000.0, "cur_val_krw": 127820000.0}, {"no": 9, "broker": "한국투자증권", "account": "위탁", "name": "ACE 미국S&P500", "code": "360200", "ticker": "360200.KS", "type": "국내ETF", "currency": "KRW", "qty": 37.0, "buy_price": 19285.0, "buy_amt": 713560.0, "cur_price": 26490.0, "cur_val_krw": 980130.0}, {"no": 10, "broker": "한국투자증권", "account": "위탁", "name": "TIGER 인도니프티50", "code": "453870", "ticker": "453870.KS", "type": "국내ETF", "currency": "KRW", "qty": 2.0, "buy_price": 13382.0, "buy_amt": 26765.0, "cur_price": 12560.0, "cur_val_krw": 25120.0}, {"no": 11, "broker": "한국투자증권", "account": "ISA", "name": "ACE 미국배당다우존스", "code": "460330", "ticker": "460330.KS", "type": "국내ETF", "currency": "KRW", "qty": 10.0, "buy_price": 10260.0, "buy_amt": 102600.0, "cur_price": 12745.0, "cur_val_krw": 127450.0}, {"no": 12, "broker": "한국투자증권", "account": "ISA", "name": "TIGER 코리아배당다우존스", "code": "439870", "ticker": "439870.KS", "type": "국내ETF", "currency": "KRW", "qty": 11.0, "buy_price": 16475.0, "buy_amt": 181225.0, "cur_price": 26605.0, "cur_val_krw": 292655.0}, {"no": 13, "broker": "한국투자증권", "account": "ISA", "name": "ACE 미국S&P500", "code": "360200", "ticker": "360200.KS", "type": "국내ETF", "currency": "KRW", "qty": 389.0, "buy_price": 20659.0, "buy_amt": 8036450.0, "cur_price": 26490.0, "cur_val_krw": 10304610.0}, {"no": 14, "broker": "한국투자증권", "account": "ISA", "name": "ACE 미국나스닥100", "code": "367380", "ticker": "367380.KS", "type": "국내ETF", "currency": "KRW", "qty": 54.0, "buy_price": 20805.0, "buy_amt": 1123520.0, "cur_price": 30555.0, "cur_val_krw": 1649970.0}, {"no": 15, "broker": "한국투자증권", "account": "ISA", "name": "TIGER 인도니프티50", "code": "453870", "ticker": "453870.KS", "type": "국내ETF", "currency": "KRW", "qty": 1046.0, "buy_price": 11996.0, "buy_amt": 12547865.0, "cur_price": 12585.0, "cur_val_krw": 13163910.0}, {"no": 16, "broker": "한국투자증권", "account": "ISA", "name": "TIGER 미국배당다우존스", "code": "458730", "ticker": "458730.KS", "type": "국내ETF", "currency": "KRW", "qty": 181.0, "buy_price": 11994.0, "buy_amt": 2170995.0, "cur_price": 14720.0, "cur_val_krw": 2664320.0}, {"no": 17, "broker": "한국투자증권", "account": "연금", "name": "TIGER 차이나전기차SOLACTIVE", "code": "371460", "ticker": "371460.KS", "type": "국내ETF", "currency": "KRW", "qty": 329.0, "buy_price": 10271.0, "buy_amt": 3379465.0, "cur_price": 13675.0, "cur_val_krw": 4499075.0}, {"no": 18, "broker": "한국투자증권", "account": "연금", "name": "ACE 미국S&P500", "code": "360200", "ticker": "360200.KS", "type": "국내ETF", "currency": "KRW", "qty": 2126.0, "buy_price": 14817.0, "buy_amt": 31501560.0, "cur_price": 26490.0, "cur_val_krw": 56317740.0}, {"no": 19, "broker": "한국투자증권", "account": "연금", "name": "ACE 미국나스닥100", "code": "367380", "ticker": "367380.KS", "type": "국내ETF", "currency": "KRW", "qty": 2661.0, "buy_price": 15067.0, "buy_amt": 40095430.0, "cur_price": 30555.0, "cur_val_krw": 81306855.0}, {"no": 20, "broker": "한국투자증권", "account": "연금", "name": "TIGER 인도니프티50", "code": "453870", "ticker": "453870.KS", "type": "국내ETF", "currency": "KRW", "qty": 170.0, "buy_price": 12923.0, "buy_amt": 2197035.0, "cur_price": 12585.0, "cur_val_krw": 2139450.0}, {"no": 21, "broker": "한국투자증권", "account": "연금", "name": "TIGER 미국배당다우존스", "code": "458730", "ticker": "458730.KS", "type": "국내ETF", "currency": "KRW", "qty": 45.0, "buy_price": 13005.0, "buy_amt": 585225.0, "cur_price": 14720.0, "cur_val_krw": 662400.0}, {"no": 22, "broker": "한국투자증권", "account": "IRP", "name": "ACE 미국S&P500", "code": "360200", "ticker": "360200.KS", "type": "국내ETF", "currency": "KRW", "qty": 103.0, "buy_price": 15341.0, "buy_amt": 1580080.0, "cur_price": 26490.0, "cur_val_krw": 2728470.0}, {"no": 23, "broker": "한국투자증권", "account": "IRP", "name": "ACE 미국나스닥100", "code": "367380", "ticker": "367380.KS", "type": "국내ETF", "currency": "KRW", "qty": 91.0, "buy_price": 20222.0, "buy_amt": 1840230.0, "cur_price": 30555.0, "cur_val_krw": 2780505.0}, {"no": 24, "broker": "한국투자증권", "account": "IRP", "name": "ACE 미국배당다우존스", "code": "460330", "ticker": "460330.KS", "type": "국내ETF", "currency": "KRW", "qty": 215.0, "buy_price": 10530.0, "buy_amt": 2263950.0, "cur_price": 14970.0, "cur_val_krw": 3218550.0}, {"no": 25, "broker": "한국투자증권", "account": "IRP", "name": "TIGER 미국배당다우존스", "code": "458730", "ticker": "458730.KS", "type": "국내ETF", "currency": "KRW", "qty": 191.0, "buy_price": 12037.0, "buy_amt": 2299020.0, "cur_price": 14720.0, "cur_val_krw": 2811520.0}, {"no": 26, "broker": "한국투자증권", "account": "IRP", "name": "KODEX 미국나스닥100", "code": "-", "ticker": "-", "type": "국내ETF", "currency": "KRW", "qty": 9.0, "buy_price": 24056.0, "buy_amt": 216505.0, "cur_price": 26600.0, "cur_val_krw": 239400.0}, {"no": 27, "broker": "한국투자증권", "account": "IRP", "name": "SOL 미국배당미국채혼합50", "code": "466940", "ticker": "466940.KS", "type": "국내ETF", "currency": "KRW", "qty": 217.0, "buy_price": 10799.0, "buy_amt": 2343305.0, "cur_price": 11480.0, "cur_val_krw": 2491160.0}, {"no": 28, "broker": "한국투자증권", "account": "IRP", "name": "KODEX 미국S&P500", "code": "-", "ticker": "-", "type": "국내ETF", "currency": "KRW", "qty": 13.0, "buy_price": 22638.0, "buy_amt": 294295.0, "cur_price": 23885.0, "cur_val_krw": 310505.0}, {"no": 29, "broker": "한국투자증권", "account": "IRP", "name": "1Q 미국나스닥100미국채혼합50", "code": "-", "ticker": "-", "type": "국내ETF", "currency": "KRW", "qty": 381.0, "buy_price": 10585.0, "buy_amt": 4032885.0, "cur_price": 11035.0, "cur_val_krw": 4204335.0}, {"no": 30, "broker": "한국투자증권", "account": "IRP", "name": "맥쿼리인프라", "code": "088980", "ticker": "088980.KS", "type": "국내주식", "currency": "KRW", "qty": 190.0, "buy_price": 12090.0, "buy_amt": 2297100.0, "cur_price": 11370.0, "cur_val_krw": 2160300.0}], "지원": [{"no": 101, "broker": "한국투자증권", "account": "IRP", "name": "1Q 미국나스닥100미국채혼합50액티브", "code": "449250", "ticker": "449250.KS", "type": "국내ETF", "currency": "KRW", "qty": 1.0, "buy_price": 2573312.0, "buy_amt": 2573312.0, "cur_price": 2679075.0, "cur_val_krw": 2679075.0}, {"no": 102, "broker": "한국투자증권", "account": "IRP", "name": "맥쿼리인프라", "code": "088980", "ticker": "088980.KS", "type": "국내주식", "currency": "KRW", "qty": 1.0, "buy_price": 1087159.0, "buy_amt": 1087159.0, "cur_price": 1027800.0, "cur_val_krw": 1027800.0}, {"no": 103, "broker": "한국투자증권", "account": "IRP", "name": "ACE 미국S&P500", "code": "360200", "ticker": "360200.KS", "type": "국내ETF", "currency": "KRW", "qty": 1.0, "buy_price": 1263804.0, "buy_amt": 1263804.0, "cur_price": 2143665.0, "cur_val_krw": 2143665.0}, {"no": 104, "broker": "한국투자증권", "account": "IRP", "name": "ACE 미국나스닥100", "code": "367380", "ticker": "367380.KS", "type": "국내ETF", "currency": "KRW", "qty": 1.0, "buy_price": 2152890.0, "buy_amt": 2152890.0, "cur_price": 3389940.0, "cur_val_krw": 3389940.0}, {"no": 105, "broker": "한국투자증권", "account": "IRP", "name": "KODEX 미국S&P500", "code": "379780", "ticker": "379780.KS", "type": "국내ETF", "currency": "KRW", "qty": 1.0, "buy_price": 91316.0, "buy_amt": 91316.0, "cur_price": 95480.0, "cur_val_krw": 95480.0}, {"no": 106, "broker": "한국투자증권", "account": "IRP", "name": "KODEX 미국나스닥100", "code": "379810", "ticker": "379810.KS", "type": "국내ETF", "currency": "KRW", "qty": 1.0, "buy_price": 339438.0, "buy_amt": 339438.0, "cur_price": 372330.0, "cur_val_krw": 372330.0}, {"no": 107, "broker": "한국투자증권", "account": "IRP", "name": "ACE 미국배당다우존스", "code": "460330", "ticker": "460330.KS", "type": "국내ETF", "currency": "KRW", "qty": 1.0, "buy_price": 1052035.0, "buy_amt": 1052035.0, "cur_price": 1484000.0, "cur_val_krw": 1484000.0}, {"no": 108, "broker": "한국투자증권", "account": "IRP", "name": "TIGER 미국배당다우존스", "code": "458730", "ticker": "458730.KS", "type": "국내ETF", "currency": "KRW", "qty": 1.0, "buy_price": 2439607.0, "buy_amt": 2439607.0, "cur_price": 2965830.0, "cur_val_krw": 2965830.0}, {"no": 109, "broker": "한국투자증권", "account": "IRP", "name": "SOL 미국배당미국채혼합50", "code": "464360", "ticker": "464360.KS", "type": "국내ETF", "currency": "KRW", "qty": 1.0, "buy_price": 2260711.0, "buy_amt": 2260711.0, "cur_price": 2431395.0, "cur_val_krw": 2431395.0}, {"no": 110, "broker": "한국투자증권", "account": "IRP", "name": "현금성 자산 (IRP)", "code": "-", "ticker": "-", "type": "예금/현금", "currency": "KRW", "qty": 0, "buy_price": 5533.0, "buy_amt": 5533.0, "cur_price": 5533.0, "cur_val_krw": 0.0}, {"no": 3, "broker": "한국투자증권", "account": "ISA", "name": "ACE 미국배당다우존스", "code": "460330", "ticker": "460330.KS", "type": "국내ETF", "currency": "KRW", "qty": 295.0, "buy_price": 10265.0, "buy_amt": 3028175.0, "cur_price": 12745.0, "cur_val_krw": 3759775.0}, {"no": 4, "broker": "한국투자증권", "account": "ISA", "name": "TIGER 코리아배당", "code": "462200", "ticker": "462200.KS", "type": "국내ETF", "currency": "KRW", "qty": 39.0, "buy_price": 11020.0, "buy_amt": 429780.0, "cur_price": 16650.0, "cur_val_krw": 649350.0}, {"no": 5, "broker": "한국투자증권", "account": "ISA", "name": "TIGER 코리아배당다우존스", "code": "439870", "ticker": "439870.KS", "type": "국내ETF", "currency": "KRW", "qty": 344.0, "buy_price": 16475.0, "buy_amt": 5667400.0, "cur_price": 26605.0, "cur_val_krw": 9152120.0}, {"no": 6, "broker": "한국투자증권", "account": "ISA", "name": "두산에너빌리티", "code": "034020", "ticker": "034020.KS", "type": "국내주식", "currency": "KRW", "qty": 92.0, "buy_price": 54100.0, "buy_amt": 4977200.0, "cur_price": 129900.0, "cur_val_krw": 11950800.0}, {"no": 7, "broker": "한국투자증권", "account": "ISA", "name": "NAVER", "code": "035420", "ticker": "035420.KS", "type": "국내주식", "currency": "KRW", "qty": 28.0, "buy_price": 276500.0, "buy_amt": 7742000.0, "cur_price": 221500.0, "cur_val_krw": 6202000.0}, {"no": 8, "broker": "한국투자증권", "account": "ISA", "name": "ACE 미국S&P500", "code": "360200", "ticker": "360200.KS", "type": "국내ETF", "currency": "KRW", "qty": 304.0, "buy_price": 22104.0, "buy_amt": 6719745.0, "cur_price": 26490.0, "cur_val_krw": 8052960.0}, {"no": 9, "broker": "한국투자증권", "account": "ISA", "name": "ACE 미국나스닥100", "code": "367380", "ticker": "367380.KS", "type": "국내ETF", "currency": "KRW", "qty": 140.0, "buy_price": 21348.0, "buy_amt": 2988790.0, "cur_price": 30555.0, "cur_val_krw": 4277700.0}, {"no": 10, "broker": "한국투자증권", "account": "ISA", "name": "TIGER 미국테크TOP10 INDXX", "code": "381170", "ticker": "381170.KS", "type": "국내ETF", "currency": "KRW", "qty": 14.0, "buy_price": 29095.0, "buy_amt": 407340.0, "cur_price": 39335.0, "cur_val_krw": 550690.0}, {"no": 11, "broker": "한국투자증권", "account": "ISA", "name": "SOL 미국배당다우존스", "code": "446720", "ticker": "446720.KS", "type": "국내ETF", "currency": "KRW", "qty": 34.0, "buy_price": 12182.0, "buy_amt": 414200.0, "cur_price": 13500.0, "cur_val_krw": 459000.0}, {"no": 12, "broker": "한국투자증권", "account": "ISA", "name": "ACE 미국30년국채액티브(H)", "code": "453850", "ticker": "453850.KS", "type": "국내ETF", "currency": "KRW", "qty": 18.0, "buy_price": 7651.0, "buy_amt": 137730.0, "cur_price": 7500.0, "cur_val_krw": 135000.0}, {"no": 13, "broker": "한국투자증권", "account": "ISA", "name": "TIGER 미국배당다우존스", "code": "458730", "ticker": "458730.KS", "type": "국내ETF", "currency": "KRW", "qty": 192.0, "buy_price": 12519.0, "buy_amt": 2403690.0, "cur_price": 14720.0, "cur_val_krw": 2826240.0}, {"no": 14, "broker": "한국투자증권", "account": "연금", "name": "TIGER 차이나전기차SOLACTIVE", "code": "371460", "ticker": "371460.KS", "type": "국내ETF", "currency": "KRW", "qty": 143.0, "buy_price": 10536.0, "buy_amt": 1506605.0, "cur_price": 13675.0, "cur_val_krw": 1955525.0}, {"no": 15, "broker": "한국투자증권", "account": "연금", "name": "ACE 미국S&P500", "code": "360200", "ticker": "360200.KS", "type": "국내ETF", "currency": "KRW", "qty": 1422.0, "buy_price": 15592.0, "buy_amt": 22172075.0, "cur_price": 26490.0, "cur_val_krw": 37668780.0}, {"no": 16, "broker": "한국투자증권", "account": "연금", "name": "ACE 미국나스닥100", "code": "367380", "ticker": "367380.KS", "type": "국내ETF", "currency": "KRW", "qty": 1762.0, "buy_price": 15763.0, "buy_amt": 27775860.0, "cur_price": 30555.0, "cur_val_krw": 53837910.0}, {"no": 17, "broker": "한국투자증권", "account": "연금", "name": "TIGER 인도니프티50", "code": "453870", "ticker": "453870.KS", "type": "국내ETF", "currency": "KRW", "qty": 157.0, "buy_price": 13097.0, "buy_amt": 2056240.0, "cur_price": 12585.0, "cur_val_krw": 1975845.0}, {"no": 18, "broker": "한국투자증권", "account": "연금", "name": "TIGER 미국배당다우존스", "code": "458730", "ticker": "458730.KS", "type": "국내ETF", "currency": "KRW", "qty": 18.0, "buy_price": 12990.0, "buy_amt": 233820.0, "cur_price": 14720.0, "cur_val_krw": 264960.0}, {"no": 19, "broker": "한국투자증권", "account": "해외위탁", "name": "INVESCO NASDAQ 100", "code": "QQQM", "ticker": "QQQM", "type": "미국ETF", "currency": "USD", "qty": 5.0, "buy_price": 225.27, "buy_amt": 1659422.0, "cur_price": 400.34, "cur_val_krw": 2762345.9999999995}, {"no": 20, "broker": "한국투자증권", "account": "해외위탁", "name": "ISHARES MSCI INDIA", "code": "INDA", "ticker": "INDA", "type": "미국ETF", "currency": "USD", "qty": 1.0, "buy_price": 66.11, "buy_amt": 97394.0, "cur_price": 72.81, "cur_val_krw": 100477.8}, {"no": 21, "broker": "한국투자증권", "account": "해외위탁", "name": "SPDR PORTFOLIO S&P 500", "code": "SPYG", "ticker": "SPYG", "type": "미국ETF", "currency": "USD", "qty": 13.0, "buy_price": 77.15, "buy_amt": 1477680.0, "cur_price": 123.54, "cur_val_krw": 2216307.6}, {"no": 22, "broker": "한국투자증권", "account": "해외위탁", "name": "미국달러 (USD)", "code": "-", "ticker": "-", "type": "예금/현금", "currency": "USD", "qty": 68.0, "buy_price": 1473.3, "buy_amt": 100184.0, "cur_price": 68.0, "cur_val_krw": 0.0}, {"no": 23, "broker": "미래에셋증권", "account": "위탁", "name": "SK아이이테크놀로지", "code": "361610", "ticker": "361610.KS", "type": "국내주식", "currency": "KRW", "qty": 1.0, "buy_price": 105000.0, "buy_amt": 105000.0, "cur_price": 19190.0, "cur_val_krw": 19190.0}, {"no": 24, "broker": "미래에셋증권", "account": "연금", "name": "ACE 미국S&P500", "code": "360200", "ticker": "360200.KS", "type": "국내ETF", "currency": "KRW", "qty": 207.0, "buy_price": 24686.0, "buy_amt": 5109985.0, "cur_price": 28320.0, "cur_val_krw": 5862240.0}, {"no": 25, "broker": "미래에셋증권", "account": "연금", "name": "ACE 미국나스닥100", "code": "367380", "ticker": "367380.KS", "type": "국내ETF", "currency": "KRW", "qty": 171.0, "buy_price": 26216.0, "buy_amt": 4482960.0, "cur_price": 34300.0, "cur_val_krw": 5865300.0}, {"no": 26, "broker": "미래에셋증권", "account": "연금", "name": "TIGER 미국테크TOP10 INDXX", "code": "381170", "ticker": "381170.KS", "type": "국내ETF", "currency": "KRW", "qty": 29.0, "buy_price": 30490.0, "buy_amt": 884205.0, "cur_price": 34265.0, "cur_val_krw": 993685.0}, {"no": 27, "broker": "미래에셋증권", "account": "연금", "name": "SOL 미국배당다우존스", "code": "446720", "ticker": "446720.KS", "type": "국내ETF", "currency": "KRW", "qty": 72.0, "buy_price": 13088.0, "buy_amt": 942300.0, "cur_price": 14295.0, "cur_val_krw": 1029240.0}, {"no": 28, "broker": "미래에셋증권", "account": "연금", "name": "ACE 미국30년국채액티브(H)", "code": "453850", "ticker": "453850.KS", "type": "국내ETF", "currency": "KRW", "qty": 96.0, "buy_price": 7619.0, "buy_amt": 731465.0, "cur_price": 7420.0, "cur_val_krw": 712320.0}, {"no": 29, "broker": "미래에셋증권", "account": "위탁", "name": "미래에셋 원화예수금", "code": "-", "ticker": "-", "type": "예금/현금", "currency": "KRW", "qty": 0, "buy_price": 463977.0, "buy_amt": 463977.0, "cur_price": 463977.0, "cur_val_krw": 0.0}, {"no": 30, "broker": "미래에셋증권", "account": "연금", "name": "미래에셋 원화예수금(연금)", "code": "-", "ticker": "-", "type": "예금/현금", "currency": "KRW", "qty": 0, "buy_price": 367335.0, "buy_amt": 367335.0, "cur_price": 367335.0, "cur_val_krw": 0.0}], "태현": [{"no": 1, "broker": "삼성증권", "account": "위탁", "name": "삼성전자", "code": "005930", "ticker": "005930.KS", "type": "국내주식", "currency": "KRW", "qty": 104.0, "buy_price": 191000.0, "buy_amt": 19864000.0, "cur_price": 316000.0, "cur_val_krw": 32864000.0}, {"no": 2, "broker": "삼성증권", "account": "위탁", "name": "에이피알", "code": "278470", "ticker": "278470.KS", "type": "국내주식", "currency": "KRW", "qty": 18.0, "buy_price": 341000.0, "buy_amt": 6138000.0, "cur_price": 385000.0, "cur_val_krw": 6930000.0}, {"no": 3, "broker": "삼성증권", "account": "위탁", "name": "현대차", "code": "005380", "ticker": "005380.KS", "type": "국내주식", "currency": "KRW", "qty": 10.0, "buy_price": 500000.0, "buy_amt": 5000000.0, "cur_price": 675000.0, "cur_val_krw": 6750000.0}, {"no": 4, "broker": "삼성증권", "account": "위탁", "name": "로보티즈", "code": "108490", "ticker": "108490.KQ", "type": "국내주식", "currency": "KRW", "qty": 20.0, "buy_price": 248000.0, "buy_amt": 4960000.0, "cur_price": 308000.0, "cur_val_krw": 6160000.0}, {"no": 5, "broker": "삼성증권", "account": "위탁", "name": "두산에너빌리티", "code": "034020", "ticker": "034020.KS", "type": "국내주식", "currency": "KRW", "qty": 46.0, "buy_price": 107200.0, "buy_amt": 4931200.0, "cur_price": 110800.0, "cur_val_krw": 5096800.0}, {"no": 6, "broker": "삼성증권", "account": "위탁", "name": "LG에너지솔루션", "code": "373220", "ticker": "373220.KS", "type": "국내주식", "currency": "KRW", "qty": 13.0, "buy_price": 361000.0, "buy_amt": 4693000.0, "cur_price": 392500.0, "cur_val_krw": 5102500.0}, {"no": 7, "broker": "삼성증권", "account": "위탁", "name": "LS ELECTRIC", "code": "010120", "ticker": "010120.KS", "type": "국내주식", "currency": "KRW", "qty": 20.0, "buy_price": 210000.0, "buy_amt": 4200000.0, "cur_price": 259000.0, "cur_val_krw": 5180000.0}, {"no": 8, "broker": "삼성증권", "account": "위탁", "name": "SK아이이테크놀로지", "code": "361610", "ticker": "361610.KS", "type": "국내주식", "currency": "KRW", "qty": 1.0, "buy_price": 105000.0, "buy_amt": 105000.0, "cur_price": 19250.0, "cur_val_krw": 19250.0}, {"no": 9, "broker": "삼성증권", "account": "위탁", "name": "카카오페이", "code": "377300", "ticker": "377300.KS", "type": "국내주식", "currency": "KRW", "qty": 2.0, "buy_price": 90000.0, "buy_amt": 180000.0, "cur_price": 46950.0, "cur_val_krw": 93900.0}, {"no": 10, "broker": "삼성증권", "account": "연금", "name": "TIGER 차이나LCSI300", "code": "371160", "ticker": "371160.KS", "type": "국내ETF", "currency": "KRW", "qty": 53.0, "buy_price": 11673.0, "buy_amt": 618710.0, "cur_price": 14335.0, "cur_val_krw": 759755.0}, {"no": 11, "broker": "삼성증권", "account": "연금", "name": "ACE 미국S&P500", "code": "360200", "ticker": "360200.KS", "type": "국내ETF", "currency": "KRW", "qty": 754.0, "buy_price": 14660.0, "buy_amt": 11053955.0, "cur_price": 28320.0, "cur_val_krw": 21353280.0}, {"no": 12, "broker": "삼성증권", "account": "연금", "name": "ACE 미국나스닥100", "code": "367380", "ticker": "367380.KS", "type": "국내ETF", "currency": "KRW", "qty": 1399.0, "buy_price": 17359.0, "buy_amt": 24286500.0, "cur_price": 34300.0, "cur_val_krw": 47985700.0}, {"no": 13, "broker": "삼성증권", "account": "연금", "name": "TIGER 인도니프티50", "code": "453870", "ticker": "453870.KS", "type": "국내ETF", "currency": "KRW", "qty": 95.0, "buy_price": 13045.0, "buy_amt": 1239355.0, "cur_price": 12455.0, "cur_val_krw": 1183225.0}, {"no": 14, "broker": "삼성증권", "account": "연금", "name": "TIGER 미국배당다우존스", "code": "458730", "ticker": "458730.KS", "type": "국내ETF", "currency": "KRW", "qty": 83.0, "buy_price": 13000.0, "buy_amt": 1079000.0, "cur_price": 15600.0, "cur_val_krw": 1294800.0}, {"no": 15, "broker": "한국투자증권", "account": "ISA", "name": "TIGER 코리아배당다우존스", "code": "439870", "ticker": "439870.KS", "type": "국내ETF", "currency": "KRW", "qty": 114.0, "buy_price": 12329.0, "buy_amt": 1405525.0, "cur_price": 16220.0, "cur_val_krw": 1849080.0}, {"no": 16, "broker": "한국투자증권", "account": "ISA", "name": "TIGER 코리아시전력기기TOP3플러스", "code": "-", "ticker": "-", "type": "국내ETF", "currency": "KRW", "qty": 165.0, "buy_price": 18617.0, "buy_amt": 3071910.0, "cur_price": 26115.0, "cur_val_krw": 4308975.0}, {"no": 17, "broker": "한국투자증권", "account": "ISA", "name": "KODEX 미국우주항공", "code": "-", "ticker": "-", "type": "국내ETF", "currency": "KRW", "qty": 56.0, "buy_price": 10368.0, "buy_amt": 580650.0, "cur_price": 15055.0, "cur_val_krw": 843080.0}, {"no": 18, "broker": "한국투자증권", "account": "ISA", "name": "KODEX 반도체", "code": "091230", "ticker": "091230.KS", "type": "국내ETF", "currency": "KRW", "qty": 17.0, "buy_price": 59175.0, "buy_amt": 1005975.0, "cur_price": 163570.0, "cur_val_krw": 2780690.0}, {"no": 19, "broker": "한국투자증권", "account": "ISA", "name": "ACE 미국S&P500", "code": "360200", "ticker": "360200.KS", "type": "국내ETF", "currency": "KRW", "qty": 179.0, "buy_price": 22810.0, "buy_amt": 4083160.0, "cur_price": 28320.0, "cur_val_krw": 5069280.0}, {"no": 20, "broker": "한국투자증권", "account": "ISA", "name": "ACE 미국나스닥100", "code": "367380", "ticker": "367380.KS", "type": "국내ETF", "currency": "KRW", "qty": 20.0, "buy_price": 22485.0, "buy_amt": 449700.0, "cur_price": 34300.0, "cur_val_krw": 686000.0}, {"no": 21, "broker": "한국투자증권", "account": "ISA", "name": "TIGER 미국필라델피아반도체나스닥", "code": "381180", "ticker": "381180.KS", "type": "국내ETF", "currency": "KRW", "qty": 9.0, "buy_price": 30308.0, "buy_amt": 272780.0, "cur_price": 50735.0, "cur_val_krw": 456615.0}, {"no": 22, "broker": "한국투자증권", "account": "ISA", "name": "ACE 미국배당다우존스", "code": "460330", "ticker": "460330.KS", "type": "국내ETF", "currency": "KRW", "qty": 100.0, "buy_price": 13035.0, "buy_amt": 1303500.0, "cur_price": 15840.0, "cur_val_krw": 1584000.0}, {"no": 23, "broker": "한국투자증권", "account": "ISA", "name": "SOL 미국배당다우존스", "code": "446720", "ticker": "446720.KS", "type": "국내ETF", "currency": "KRW", "qty": 22.0, "buy_price": 12587.0, "buy_amt": 276930.0, "cur_price": 14295.0, "cur_val_krw": 314490.0}, {"no": 24, "broker": "한국투자증권", "account": "ISA", "name": "ACE 미국30년국채액티브(H)", "code": "453850", "ticker": "453850.KS", "type": "국내ETF", "currency": "KRW", "qty": 12.0, "buy_price": 7569.0, "buy_amt": 90830.0, "cur_price": 7420.0, "cur_val_krw": 89040.0}, {"no": 25, "broker": "한국투자증권", "account": "ISA", "name": "TIGER 미국배당다우존스", "code": "458730", "ticker": "458730.KS", "type": "국내ETF", "currency": "KRW", "qty": 328.0, "buy_price": 12454.0, "buy_amt": 4085151.0, "cur_price": 15600.0, "cur_val_krw": 5116800.0}, {"no": 26, "broker": "한국투자증권", "account": "IRP", "name": "1Q 미국나스닥100미국채혼합50액티브", "code": "449250", "ticker": "449250.KS", "type": "국내ETF", "currency": "KRW", "qty": 1.0, "buy_price": 2991040.0, "buy_amt": 2991040.0, "cur_price": 3120075.0, "cur_val_krw": 3120075.0}, {"no": 27, "broker": "한국투자증권", "account": "IRP", "name": "ACE 미국S&P500", "code": "360200", "ticker": "360200.KS", "type": "국내ETF", "currency": "KRW", "qty": 0, "buy_price": 2026300.0, "buy_amt": 2026300.0, "cur_price": 3678635.0, "cur_val_krw": 0.0}, {"no": 28, "broker": "한국투자증권", "account": "IRP", "name": "ACE 미국나스닥100", "code": "367380", "ticker": "367380.KS", "type": "국내ETF", "currency": "KRW", "qty": 0, "buy_price": 2712605.0, "buy_amt": 2712605.0, "cur_price": 5161260.0, "cur_val_krw": 0.0}, {"no": 29, "broker": "한국투자증권", "account": "IRP", "name": "KODEX 미국S&P500", "code": "379780", "ticker": "379780.KS", "type": "국내ETF", "currency": "KRW", "qty": 0, "buy_price": 203775.0, "buy_amt": 203775.0, "cur_price": 214830.0, "cur_val_krw": 0.0}, {"no": 30, "broker": "한국투자증권", "account": "IRP", "name": "KODEX 미국나스닥100", "code": "379810", "ticker": "379810.KS", "type": "국내ETF", "currency": "KRW", "qty": 0, "buy_price": 167565.0, "buy_amt": 167565.0, "cur_price": 186165.0, "cur_val_krw": 0.0}, {"no": 31, "broker": "한국투자증권", "account": "IRP", "name": "TIGER 미국배당다우존스", "code": "458730", "ticker": "458730.KS", "type": "국내ETF", "currency": "KRW", "qty": 0, "buy_price": 2738340.0, "buy_amt": 2738340.0, "cur_price": 3374910.0, "cur_val_krw": 0.0}, {"no": 32, "broker": "한국투자증권", "account": "IRP", "name": "SOL 미국배당미국채혼합50", "code": "464360", "ticker": "464360.KS", "type": "국내ETF", "currency": "KRW", "qty": 0, "buy_price": 1985090.0, "buy_amt": 1985090.0, "cur_price": 2168850.0, "cur_val_krw": 0.0}, {"no": 33, "broker": "한국투자증권", "account": "IRP", "name": "현금성자산(IRP)", "code": "-", "ticker": "-", "type": "예금/현금", "currency": "KRW", "qty": 0, "buy_price": 6527.0, "buy_amt": 6527.0, "cur_price": 6527.0, "cur_val_krw": 0.0}, {"no": 34, "broker": "미래에셋증권", "account": "위탁", "name": "SK아이이테크놀로지", "code": "361610", "ticker": "361610.KS", "type": "국내주식", "currency": "KRW", "qty": 1.0, "buy_price": 105000.0, "buy_amt": 105000.0, "cur_price": 26350.0, "cur_val_krw": 26350.0}, {"no": 35, "broker": "미래에셋증권", "account": "해외위탁", "name": "INVESCO NASDAQ 100", "code": "QQQM", "ticker": "QQQM", "type": "미국ETF", "currency": "USD", "qty": 1.0, "buy_price": 207.86, "buy_amt": 313240.0, "cur_price": 260.57, "cur_val_krw": 359586.6}, {"no": 36, "broker": "미래에셋증권", "account": "해외위탁", "name": "테슬라", "code": "TSLA", "ticker": "TSLA", "type": "미국주식", "currency": "USD", "qty": 3.0, "buy_price": 333.1, "buy_amt": 1506818.0, "cur_price": 383.9, "cur_val_krw": 1589345.9999999998}, {"no": 37, "broker": "미래에셋증권", "account": "위탁", "name": "미국달러(USD)", "code": "-", "ticker": "-", "type": "예금/현금", "currency": "KRW", "qty": 0, "buy_price": 1594.0, "buy_amt": 1594.0, "cur_price": 1594.0, "cur_val_krw": 0.0}, {"no": 38, "broker": "미래에셋증권", "account": "연금", "name": "ACE 미국S&P500", "code": "360200", "ticker": "360200.KS", "type": "국내ETF", "currency": "KRW", "qty": 227.0, "buy_price": 23072.0, "buy_amt": 5237170.0, "cur_price": 26325.0, "cur_val_krw": 5975775.0}, {"no": 39, "broker": "미래에셋증권", "account": "연금", "name": "ACE 미국나스닥100", "code": "367380", "ticker": "367380.KS", "type": "국내ETF", "currency": "KRW", "qty": 178.0, "buy_price": 25384.0, "buy_amt": 4518390.0, "cur_price": 29925.0, "cur_val_krw": 5326650.0}, {"no": 40, "broker": "미래에셋증권", "account": "연금", "name": "TIGER 미국테크TOP10 INDXX", "code": "381170", "ticker": "381170.KS", "type": "국내ETF", "currency": "KRW", "qty": 18.0, "buy_price": 29187.0, "buy_amt": 525360.0, "cur_price": 31740.0, "cur_val_krw": 571320.0}, {"no": 41, "broker": "미래에셋증권", "account": "연금", "name": "SOL 미국배당다우존스", "code": "446720", "ticker": "446720.KS", "type": "국내ETF", "currency": "KRW", "qty": 43.0, "buy_price": 13149.0, "buy_amt": 565410.0, "cur_price": 13325.0, "cur_val_krw": 572975.0}, {"no": 42, "broker": "미래에셋증권", "account": "연금", "name": "ACE 미국30년국채액티브(H)", "code": "453850", "ticker": "453850.KS", "type": "국내ETF", "currency": "KRW", "qty": 57.0, "buy_price": 7644.0, "buy_amt": 435708.0, "cur_price": 7560.0, "cur_val_krw": 430920.0}]};
+// ═══════════════════════════════════════════
+// RAW DATA
+// ═══════════════════════════════════════════
+const RAW_ORIG = {"해인":[{"no":1,"broker":"미래에셋증권","account":"위탁","name":"ACE 미국S&P500","code":"360200","ticker":"360200.KS","type":"국내ETF","currency":"KRW","qty":139,"buy_price":23366,"buy_amt":3247935,"cur_price":26490},{"no":2,"broker":"미래에셋증권","account":"위탁","name":"ACE 미국나스닥100","code":"367380","ticker":"367380.KS","type":"국내ETF","currency":"KRW","qty":97,"buy_price":25636,"buy_amt":2486720,"cur_price":30555},{"no":3,"broker":"미래에셋증권","account":"위탁","name":"TIGER 미국테크TOP10 INDXX","code":"381170","ticker":"381170.KS","type":"국내ETF","currency":"KRW","qty":24,"buy_price":29846,"buy_amt":716310,"cur_price":32510},{"no":4,"broker":"미래에셋증권","account":"위탁","name":"SOL 미국배당다우존스","code":"446720","ticker":"446720.KS","type":"국내ETF","currency":"KRW","qty":58,"buy_price":13001,"buy_amt":754070,"cur_price":13500},{"no":5,"broker":"미래에셋증권","account":"위탁","name":"ACE 미국30년국채액티브(H)","code":"453850","ticker":"453850.KS","type":"국내ETF","currency":"KRW","qty":76,"buy_price":7659,"buy_amt":582065,"cur_price":7500},{"no":6,"broker":"미래에셋증권","account":"위탁","name":"미래에셋 원화예수금","code":"-","ticker":"-","type":"예금/현금","currency":"KRW","qty":0,"buy_price":2500884,"buy_amt":2500884,"cur_price":2500884},{"no":7,"broker":"한국투자증권","account":"위탁","name":"두산에너빌리티","code":"034020","ticker":"034020.KS","type":"국내주식","currency":"KRW","qty":823,"buy_price":35594,"buy_amt":29294150,"cur_price":128900},{"no":8,"broker":"한국투자증권","account":"위탁","name":"로보티즈","code":"108490","ticker":"108490.KQ","type":"국내주식","currency":"KRW","qty":385,"buy_price":92226,"buy_amt":35507300,"cur_price":332000},{"no":9,"broker":"한국투자증권","account":"위탁","name":"ACE 미국S&P500","code":"360200","ticker":"360200.KS","type":"국내ETF","currency":"KRW","qty":37,"buy_price":19285,"buy_amt":713560,"cur_price":26490},{"no":10,"broker":"한국투자증권","account":"위탁","name":"TIGER 인도니프티50","code":"453870","ticker":"453870.KS","type":"국내ETF","currency":"KRW","qty":2,"buy_price":13382,"buy_amt":26765,"cur_price":12560},{"no":11,"broker":"한국투자증권","account":"ISA","name":"ACE 미국배당다우존스","code":"460330","ticker":"460330.KS","type":"국내ETF","currency":"KRW","qty":10,"buy_price":10260,"buy_amt":102600,"cur_price":12745},{"no":12,"broker":"한국투자증권","account":"ISA","name":"TIGER 코리아배당다우존스","code":"439870","ticker":"439870.KS","type":"국내ETF","currency":"KRW","qty":11,"buy_price":16475,"buy_amt":181225,"cur_price":26605},{"no":13,"broker":"한국투자증권","account":"ISA","name":"ACE 미국S&P500","code":"360200","ticker":"360200.KS","type":"국내ETF","currency":"KRW","qty":389,"buy_price":20659,"buy_amt":8036450,"cur_price":26490},{"no":14,"broker":"한국투자증권","account":"ISA","name":"ACE 미국나스닥100","code":"367380","ticker":"367380.KS","type":"국내ETF","currency":"KRW","qty":54,"buy_price":20805,"buy_amt":1123520,"cur_price":30555},{"no":15,"broker":"한국투자증권","account":"ISA","name":"TIGER 인도니프티50","code":"453870","ticker":"453870.KS","type":"국내ETF","currency":"KRW","qty":1046,"buy_price":11996,"buy_amt":12547865,"cur_price":12585},{"no":16,"broker":"한국투자증권","account":"ISA","name":"TIGER 미국배당다우존스","code":"458730","ticker":"458730.KS","type":"국내ETF","currency":"KRW","qty":181,"buy_price":11994,"buy_amt":2170995,"cur_price":14720},{"no":17,"broker":"한국투자증권","account":"연금","name":"TIGER 차이나전기차SOLACTIVE","code":"371460","ticker":"371460.KS","type":"국내ETF","currency":"KRW","qty":329,"buy_price":10271,"buy_amt":3379465,"cur_price":13675},{"no":18,"broker":"한국투자증권","account":"연금","name":"ACE 미국S&P500","code":"360200","ticker":"360200.KS","type":"국내ETF","currency":"KRW","qty":2126,"buy_price":14817,"buy_amt":31501560,"cur_price":26490},{"no":19,"broker":"한국투자증권","account":"연금","name":"ACE 미국나스닥100","code":"367380","ticker":"367380.KS","type":"국내ETF","currency":"KRW","qty":2661,"buy_price":15067,"buy_amt":40095430,"cur_price":30555},{"no":20,"broker":"한국투자증권","account":"연금","name":"TIGER 인도니프티50","code":"453870","ticker":"453870.KS","type":"국내ETF","currency":"KRW","qty":170,"buy_price":12923,"buy_amt":2197035,"cur_price":12585},{"no":21,"broker":"한국투자증권","account":"연금","name":"TIGER 미국배당다우존스","code":"458730","ticker":"458730.KS","type":"국내ETF","currency":"KRW","qty":45,"buy_price":13005,"buy_amt":585225,"cur_price":14720},{"no":22,"broker":"한국투자증권","account":"IRP","name":"ACE 미국S&P500","code":"360200","ticker":"360200.KS","type":"국내ETF","currency":"KRW","qty":103,"buy_price":15341,"buy_amt":1580080,"cur_price":26490},{"no":23,"broker":"한국투자증권","account":"IRP","name":"ACE 미국나스닥100","code":"367380","ticker":"367380.KS","type":"국내ETF","currency":"KRW","qty":91,"buy_price":20222,"buy_amt":1840230,"cur_price":30555},{"no":24,"broker":"한국투자증권","account":"IRP","name":"ACE 미국배당다우존스","code":"460330","ticker":"460330.KS","type":"국내ETF","currency":"KRW","qty":215,"buy_price":10530,"buy_amt":2263950,"cur_price":14970},{"no":25,"broker":"한국투자증권","account":"IRP","name":"TIGER 미국배당다우존스","code":"458730","ticker":"458730.KS","type":"국내ETF","currency":"KRW","qty":191,"buy_price":12037,"buy_amt":2299020,"cur_price":14720},{"no":26,"broker":"한국투자증권","account":"IRP","name":"KODEX 미국나스닥100","code":"-","ticker":"-","type":"국내ETF","currency":"KRW","qty":9,"buy_price":24056,"buy_amt":216505,"cur_price":26600},{"no":27,"broker":"한국투자증권","account":"IRP","name":"SOL 미국배당미국채혼합50","code":"466940","ticker":"466940.KS","type":"국내ETF","currency":"KRW","qty":217,"buy_price":10799,"buy_amt":2343305,"cur_price":11480},{"no":28,"broker":"한국투자증권","account":"IRP","name":"KODEX 미국S&P500","code":"-","ticker":"-","type":"국내ETF","currency":"KRW","qty":13,"buy_price":22638,"buy_amt":294295,"cur_price":23885},{"no":29,"broker":"한국투자증권","account":"IRP","name":"1Q 미국나스닥100미국채혼합50","code":"-","ticker":"-","type":"국내ETF","currency":"KRW","qty":381,"buy_price":10585,"buy_amt":4032885,"cur_price":11035},{"no":30,"broker":"한국투자증권","account":"IRP","name":"맥쿼리인프라","code":"088980","ticker":"088980.KS","type":"국내주식","currency":"KRW","qty":190,"buy_price":12090,"buy_amt":2297100,"cur_price":11370}],"지원":[{"no":101,"broker":"한국투자증권","account":"IRP","name":"1Q 미국나스닥100미국채혼합50액티브","code":"449250","ticker":"449250.KS","type":"국내ETF","currency":"KRW","qty":1,"buy_price":2573312,"buy_amt":2573312,"cur_price":2679075},{"no":102,"broker":"한국투자증권","account":"IRP","name":"맥쿼리인프라","code":"088980","ticker":"088980.KS","type":"국내주식","currency":"KRW","qty":1,"buy_price":1087159,"buy_amt":1087159,"cur_price":1027800},{"no":103,"broker":"한국투자증권","account":"IRP","name":"ACE 미국S&P500","code":"360200","ticker":"360200.KS","type":"국내ETF","currency":"KRW","qty":1,"buy_price":1263804,"buy_amt":1263804,"cur_price":2143665},{"no":104,"broker":"한국투자증권","account":"IRP","name":"ACE 미국나스닥100","code":"367380","ticker":"367380.KS","type":"국내ETF","currency":"KRW","qty":1,"buy_price":2152890,"buy_amt":2152890,"cur_price":3389940},{"no":105,"broker":"한국투자증권","account":"IRP","name":"KODEX 미국S&P500","code":"379780","ticker":"379780.KS","type":"국내ETF","currency":"KRW","qty":1,"buy_price":91316,"buy_amt":91316,"cur_price":95480},{"no":106,"broker":"한국투자증권","account":"IRP","name":"KODEX 미국나스닥100","code":"379810","ticker":"379810.KS","type":"국내ETF","currency":"KRW","qty":1,"buy_price":339438,"buy_amt":339438,"cur_price":372330},{"no":107,"broker":"한국투자증권","account":"IRP","name":"ACE 미국배당다우존스","code":"460330","ticker":"460330.KS","type":"국내ETF","currency":"KRW","qty":1,"buy_price":1052035,"buy_amt":1052035,"cur_price":1484000},{"no":108,"broker":"한국투자증권","account":"IRP","name":"TIGER 미국배당다우존스","code":"458730","ticker":"458730.KS","type":"국내ETF","currency":"KRW","qty":1,"buy_price":2439607,"buy_amt":2439607,"cur_price":2965830},{"no":109,"broker":"한국투자증권","account":"IRP","name":"SOL 미국배당미국채혼합50","code":"464360","ticker":"464360.KS","type":"국내ETF","currency":"KRW","qty":1,"buy_price":2260711,"buy_amt":2260711,"cur_price":2431395},{"no":110,"broker":"한국투자증권","account":"IRP","name":"현금성 자산 (IRP)","code":"-","ticker":"-","type":"예금/현금","currency":"KRW","qty":0,"buy_price":5533,"buy_amt":5533,"cur_price":5533},{"no":3,"broker":"한국투자증권","account":"ISA","name":"ACE 미국배당다우존스","code":"460330","ticker":"460330.KS","type":"국내ETF","currency":"KRW","qty":295,"buy_price":10265,"buy_amt":3028175,"cur_price":12745},{"no":4,"broker":"한국투자증권","account":"ISA","name":"TIGER 코리아배당","code":"462200","ticker":"462200.KS","type":"국내ETF","currency":"KRW","qty":39,"buy_price":11020,"buy_amt":429780,"cur_price":16650},{"no":5,"broker":"한국투자증권","account":"ISA","name":"TIGER 코리아배당다우존스","code":"439870","ticker":"439870.KS","type":"국내ETF","currency":"KRW","qty":344,"buy_price":16475,"buy_amt":5667400,"cur_price":26605},{"no":6,"broker":"한국투자증권","account":"ISA","name":"두산에너빌리티","code":"034020","ticker":"034020.KS","type":"국내주식","currency":"KRW","qty":92,"buy_price":54100,"buy_amt":4977200,"cur_price":129900},{"no":7,"broker":"한국투자증권","account":"ISA","name":"NAVER","code":"035420","ticker":"035420.KS","type":"국내주식","currency":"KRW","qty":28,"buy_price":276500,"buy_amt":7742000,"cur_price":221500},{"no":8,"broker":"한국투자증권","account":"ISA","name":"ACE 미국S&P500","code":"360200","ticker":"360200.KS","type":"국내ETF","currency":"KRW","qty":304,"buy_price":22104,"buy_amt":6719745,"cur_price":26490},{"no":9,"broker":"한국투자증권","account":"ISA","name":"ACE 미국나스닥100","code":"367380","ticker":"367380.KS","type":"국내ETF","currency":"KRW","qty":140,"buy_price":21348,"buy_amt":2988790,"cur_price":30555},{"no":10,"broker":"한국투자증권","account":"ISA","name":"TIGER 미국테크TOP10 INDXX","code":"381170","ticker":"381170.KS","type":"국내ETF","currency":"KRW","qty":14,"buy_price":29095,"buy_amt":407340,"cur_price":39335},{"no":11,"broker":"한국투자증권","account":"ISA","name":"SOL 미국배당다우존스","code":"446720","ticker":"446720.KS","type":"국내ETF","currency":"KRW","qty":34,"buy_price":12182,"buy_amt":414200,"cur_price":13500},{"no":12,"broker":"한국투자증권","account":"ISA","name":"ACE 미국30년국채액티브(H)","code":"453850","ticker":"453850.KS","type":"국내ETF","currency":"KRW","qty":18,"buy_price":7651,"buy_amt":137730,"cur_price":7500},{"no":13,"broker":"한국투자증권","account":"ISA","name":"TIGER 미국배당다우존스","code":"458730","ticker":"458730.KS","type":"국내ETF","currency":"KRW","qty":192,"buy_price":12519,"buy_amt":2403690,"cur_price":14720},{"no":14,"broker":"한국투자증권","account":"연금","name":"TIGER 차이나전기차SOLACTIVE","code":"371460","ticker":"371460.KS","type":"국내ETF","currency":"KRW","qty":143,"buy_price":10536,"buy_amt":1506605,"cur_price":13675},{"no":15,"broker":"한국투자증권","account":"연금","name":"ACE 미국S&P500","code":"360200","ticker":"360200.KS","type":"국내ETF","currency":"KRW","qty":1422,"buy_price":15592,"buy_amt":22172075,"cur_price":26490},{"no":16,"broker":"한국투자증권","account":"연금","name":"ACE 미국나스닥100","code":"367380","ticker":"367380.KS","type":"국내ETF","currency":"KRW","qty":1762,"buy_price":15763,"buy_amt":27775860,"cur_price":30555},{"no":17,"broker":"한국투자증권","account":"연금","name":"TIGER 인도니프티50","code":"453870","ticker":"453870.KS","type":"국내ETF","currency":"KRW","qty":157,"buy_price":13097,"buy_amt":2056240,"cur_price":12585},{"no":18,"broker":"한국투자증권","account":"연금","name":"TIGER 미국배당다우존스","code":"458730","ticker":"458730.KS","type":"국내ETF","currency":"KRW","qty":18,"buy_price":12990,"buy_amt":233820,"cur_price":14720},{"no":19,"broker":"한국투자증권","account":"해외위탁","name":"INVESCO NASDAQ 100","code":"QQQM","ticker":"QQQM","type":"미국ETF","currency":"USD","qty":5,"buy_price":225.27,"buy_amt":1659422,"cur_price":400.34},{"no":20,"broker":"한국투자증권","account":"해외위탁","name":"ISHARES MSCI INDIA","code":"INDA","ticker":"INDA","type":"미국ETF","currency":"USD","qty":1,"buy_price":66.11,"buy_amt":97394,"cur_price":72.81},{"no":21,"broker":"한국투자증권","account":"해외위탁","name":"SPDR PORTFOLIO S&P 500","code":"SPYG","ticker":"SPYG","type":"미국ETF","currency":"USD","qty":13,"buy_price":77.15,"buy_amt":1477680,"cur_price":123.54},{"no":22,"broker":"한국투자증권","account":"해외위탁","name":"미국달러 (USD)","code":"-","ticker":"-","type":"예금/현금","currency":"USD","qty":68,"buy_price":1473.3,"buy_amt":100184,"cur_price":1380},{"no":23,"broker":"미래에셋증권","account":"위탁","name":"SK아이이테크놀로지","code":"361610","ticker":"361610.KS","type":"국내주식","currency":"KRW","qty":1,"buy_price":105000,"buy_amt":105000,"cur_price":19190},{"no":24,"broker":"미래에셋증권","account":"연금","name":"ACE 미국S&P500","code":"360200","ticker":"360200.KS","type":"국내ETF","currency":"KRW","qty":207,"buy_price":24686,"buy_amt":5109985,"cur_price":28320},{"no":25,"broker":"미래에셋증권","account":"연금","name":"ACE 미국나스닥100","code":"367380","ticker":"367380.KS","type":"국내ETF","currency":"KRW","qty":171,"buy_price":26216,"buy_amt":4482960,"cur_price":34300},{"no":26,"broker":"미래에셋증권","account":"연금","name":"TIGER 미국테크TOP10 INDXX","code":"381170","ticker":"381170.KS","type":"국내ETF","currency":"KRW","qty":29,"buy_price":30490,"buy_amt":884205,"cur_price":34265},{"no":27,"broker":"미래에셋증권","account":"연금","name":"SOL 미국배당다우존스","code":"446720","ticker":"446720.KS","type":"국내ETF","currency":"KRW","qty":72,"buy_price":13088,"buy_amt":942300,"cur_price":14295},{"no":28,"broker":"미래에셋증권","account":"연금","name":"ACE 미국30년국채액티브(H)","code":"453850","ticker":"453850.KS","type":"국내ETF","currency":"KRW","qty":96,"buy_price":7619,"buy_amt":731465,"cur_price":7420},{"no":29,"broker":"미래에셋증권","account":"위탁","name":"미래에셋 원화예수금","code":"-","ticker":"-","type":"예금/현금","currency":"KRW","qty":0,"buy_price":463977,"buy_amt":463977,"cur_price":463977},{"no":30,"broker":"미래에셋증권","account":"연금","name":"미래에셋 원화예수금(연금)","code":"-","ticker":"-","type":"예금/현금","currency":"KRW","qty":0,"buy_price":367335,"buy_amt":367335,"cur_price":367335}],"태현":[{"no":1,"broker":"삼성증권","account":"위탁","name":"삼성전자","code":"005930","ticker":"005930.KS","type":"국내주식","currency":"KRW","qty":104,"buy_price":191000,"buy_amt":19864000,"cur_price":316000},{"no":2,"broker":"삼성증권","account":"위탁","name":"에이피알","code":"278470","ticker":"278470.KS","type":"국내주식","currency":"KRW","qty":18,"buy_price":341000,"buy_amt":6138000,"cur_price":385000},{"no":3,"broker":"삼성증권","account":"위탁","name":"현대차","code":"005380","ticker":"005380.KS","type":"국내주식","currency":"KRW","qty":10,"buy_price":500000,"buy_amt":5000000,"cur_price":675000},{"no":4,"broker":"삼성증권","account":"위탁","name":"로보티즈","code":"108490","ticker":"108490.KQ","type":"국내주식","currency":"KRW","qty":20,"buy_price":248000,"buy_amt":4960000,"cur_price":308000},{"no":5,"broker":"삼성증권","account":"위탁","name":"두산에너빌리티","code":"034020","ticker":"034020.KS","type":"국내주식","currency":"KRW","qty":46,"buy_price":107200,"buy_amt":4931200,"cur_price":110800},{"no":6,"broker":"삼성증권","account":"위탁","name":"LG에너지솔루션","code":"373220","ticker":"373220.KS","type":"국내주식","currency":"KRW","qty":13,"buy_price":361000,"buy_amt":4693000,"cur_price":392500},{"no":7,"broker":"삼성증권","account":"위탁","name":"LS ELECTRIC","code":"010120","ticker":"010120.KS","type":"국내주식","currency":"KRW","qty":20,"buy_price":210000,"buy_amt":4200000,"cur_price":259000},{"no":8,"broker":"삼성증권","account":"위탁","name":"SK아이이테크놀로지","code":"361610","ticker":"361610.KS","type":"국내주식","currency":"KRW","qty":1,"buy_price":105000,"buy_amt":105000,"cur_price":19250},{"no":9,"broker":"삼성증권","account":"위탁","name":"카카오페이","code":"377300","ticker":"377300.KS","type":"국내주식","currency":"KRW","qty":2,"buy_price":90000,"buy_amt":180000,"cur_price":46950},{"no":10,"broker":"삼성증권","account":"연금","name":"TIGER 차이나LCSI300","code":"371160","ticker":"371160.KS","type":"국내ETF","currency":"KRW","qty":53,"buy_price":11673,"buy_amt":618710,"cur_price":14335},{"no":11,"broker":"삼성증권","account":"연금","name":"ACE 미국S&P500","code":"360200","ticker":"360200.KS","type":"국내ETF","currency":"KRW","qty":754,"buy_price":14660,"buy_amt":11053955,"cur_price":28320},{"no":12,"broker":"삼성증권","account":"연금","name":"ACE 미국나스닥100","code":"367380","ticker":"367380.KS","type":"국내ETF","currency":"KRW","qty":1399,"buy_price":17359,"buy_amt":24286500,"cur_price":34300},{"no":13,"broker":"삼성증권","account":"연금","name":"TIGER 인도니프티50","code":"453870","ticker":"453870.KS","type":"국내ETF","currency":"KRW","qty":95,"buy_price":13045,"buy_amt":1239355,"cur_price":12455},{"no":14,"broker":"삼성증권","account":"연금","name":"TIGER 미국배당다우존스","code":"458730","ticker":"458730.KS","type":"국내ETF","currency":"KRW","qty":83,"buy_price":13000,"buy_amt":1079000,"cur_price":15600},{"no":15,"broker":"한국투자증권","account":"ISA","name":"TIGER 코리아배당다우존스","code":"439870","ticker":"439870.KS","type":"국내ETF","currency":"KRW","qty":114,"buy_price":12329,"buy_amt":1405525,"cur_price":16220},{"no":16,"broker":"한국투자증권","account":"ISA","name":"TIGER 코리아시전력기기TOP3플러스","code":"-","ticker":"-","type":"국내ETF","currency":"KRW","qty":165,"buy_price":18617,"buy_amt":3071910,"cur_price":26115},{"no":17,"broker":"한국투자증권","account":"ISA","name":"KODEX 미국우주항공","code":"-","ticker":"-","type":"국내ETF","currency":"KRW","qty":56,"buy_price":10368,"buy_amt":580650,"cur_price":15055},{"no":18,"broker":"한국투자증권","account":"ISA","name":"KODEX 반도체","code":"091230","ticker":"091230.KS","type":"국내ETF","currency":"KRW","qty":17,"buy_price":59175,"buy_amt":1005975,"cur_price":163570},{"no":19,"broker":"한국투자증권","account":"ISA","name":"ACE 미국S&P500","code":"360200","ticker":"360200.KS","type":"국내ETF","currency":"KRW","qty":179,"buy_price":22810,"buy_amt":4083160,"cur_price":28320},{"no":20,"broker":"한국투자증권","account":"ISA","name":"ACE 미국나스닥100","code":"367380","ticker":"367380.KS","type":"국내ETF","currency":"KRW","qty":20,"buy_price":22485,"buy_amt":449700,"cur_price":34300},{"no":21,"broker":"한국투자증권","account":"ISA","name":"TIGER 미국필라델피아반도체나스닥","code":"381180","ticker":"381180.KS","type":"국내ETF","currency":"KRW","qty":9,"buy_price":30308,"buy_amt":272780,"cur_price":50735},{"no":22,"broker":"한국투자증권","account":"ISA","name":"ACE 미국배당다우존스","code":"460330","ticker":"460330.KS","type":"국내ETF","currency":"KRW","qty":100,"buy_price":13035,"buy_amt":1303500,"cur_price":15840},{"no":23,"broker":"한국투자증권","account":"ISA","name":"SOL 미국배당다우존스","code":"446720","ticker":"446720.KS","type":"국내ETF","currency":"KRW","qty":22,"buy_price":12587,"buy_amt":276930,"cur_price":14295},{"no":24,"broker":"한국투자증권","account":"ISA","name":"ACE 미국30년국채액티브(H)","code":"453850","ticker":"453850.KS","type":"국내ETF","currency":"KRW","qty":12,"buy_price":7569,"buy_amt":90830,"cur_price":7420},{"no":25,"broker":"한국투자증권","account":"ISA","name":"TIGER 미국배당다우존스","code":"458730","ticker":"458730.KS","type":"국내ETF","currency":"KRW","qty":328,"buy_price":12454,"buy_amt":4085151,"cur_price":15600},{"no":26,"broker":"한국투자증권","account":"IRP","name":"1Q 미국나스닥100미국채혼합50액티브","code":"449250","ticker":"449250.KS","type":"국내ETF","currency":"KRW","qty":1,"buy_price":2991040,"buy_amt":2991040,"cur_price":3120075},{"no":34,"broker":"미래에셋증권","account":"위탁","name":"SK아이이테크놀로지","code":"361610","ticker":"361610.KS","type":"국내주식","currency":"KRW","qty":1,"buy_price":105000,"buy_amt":105000,"cur_price":26350},{"no":35,"broker":"미래에셋증권","account":"해외위탁","name":"INVESCO NASDAQ 100","code":"QQQM","ticker":"QQQM","type":"미국ETF","currency":"USD","qty":1,"buy_price":207.86,"buy_amt":313240,"cur_price":260.57},{"no":36,"broker":"미래에셋증권","account":"해외위탁","name":"테슬라","code":"TSLA","ticker":"TSLA","type":"미국주식","currency":"USD","qty":3,"buy_price":333.1,"buy_amt":1506818,"cur_price":383.9},{"no":38,"broker":"미래에셋증권","account":"연금","name":"ACE 미국S&P500","code":"360200","ticker":"360200.KS","type":"국내ETF","currency":"KRW","qty":227,"buy_price":23072,"buy_amt":5237170,"cur_price":26325},{"no":39,"broker":"미래에셋증권","account":"연금","name":"ACE 미국나스닥100","code":"367380","ticker":"367380.KS","type":"국내ETF","currency":"KRW","qty":178,"buy_price":25384,"buy_amt":4518390,"cur_price":29925},{"no":40,"broker":"미래에셋증권","account":"연금","name":"TIGER 미국테크TOP10 INDXX","code":"381170","ticker":"381170.KS","type":"국내ETF","currency":"KRW","qty":18,"buy_price":29187,"buy_amt":525360,"cur_price":31740},{"no":41,"broker":"미래에셋증권","account":"연금","name":"SOL 미국배당다우존스","code":"446720","ticker":"446720.KS","type":"국내ETF","currency":"KRW","qty":43,"buy_price":13149,"buy_amt":565410,"cur_price":13325},{"no":42,"broker":"미래에셋증권","account":"연금","name":"ACE 미국30년국채액티브(H)","code":"453850","ticker":"453850.KS","type":"국내ETF","currency":"KRW","qty":57,"buy_price":7644,"buy_amt":435708,"cur_price":7560}]};
 
-// ===================== HELPERS =====================
-const COLORS = { haein: '#6366f1', jiwon: '#10b981', taehyun: '#f59e0b' };
-const NAMES = { haein: '유해인', jiwon: '유지원', taehyun: '유태현' };
-const EMOJIS = { haein: '🔵', jiwon: '🟢', taehyun: '🟠' };
+// ═══════════════════════════════════════════
+// STORAGE
+// ═══════════════════════════════════════════
+let workingData = null; // { 해인:[], 지원:[], 태현:[] }
 
-const TYPE_COLORS = {
-  '국내ETF': '#6366f1', '국내주식': '#f43f5e',
-  '미국ETF': '#3b82f6', '미국주식': '#0ea5e9', '예금/현금': '#94a3b8'
-};
-const ACCT_COLORS = ['#6366f1','#10b981','#f59e0b','#f43f5e','#3b82f6','#8b5cf6','#06b6d4'];
-
-function fmt(n, dec=0) {
-  if (n == null || isNaN(n)) return '-';
-  return n.toLocaleString('ko-KR', { maximumFractionDigits: dec });
+function loadData() {
+  try {
+    const s = localStorage.getItem(STORAGE_KEY);
+    if (s) { workingData = JSON.parse(s); return; }
+  } catch(e){}
+  workingData = JSON.parse(JSON.stringify(RAW_ORIG));
 }
-function fmtM(n) {
-  // format in millions (만원)
-  if (n >= 100000000) return (n/100000000).toFixed(1) + '억';
-  if (n >= 10000) return (n/10000).toFixed(0) + '만';
-  return fmt(n);
+function saveData() {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(workingData)); } catch(e){}
 }
-function retColor(r) { return r >= 0 ? '#ef4444' : '#3b82f6'; }
+function resetData(key) {
+  const rawKey = key==='haein'?'해인':key==='jiwon'?'지원':'태현';
+  workingData[rawKey] = JSON.parse(JSON.stringify(RAW_ORIG[rawKey]));
+  saveData();
+}
 
-// Calculate current value properly
+// ═══════════════════════════════════════════
+// HELPERS
+// ═══════════════════════════════════════════
+const fmt   = (n, d=0) => n == null || isNaN(n) ? '-' : n.toLocaleString('ko-KR',{maximumFractionDigits:d});
+const fmtM  = n => n >= 1e8 ? (n/1e8).toFixed(1)+'억' : n >= 1e4 ? (n/1e4).toFixed(0)+'만' : fmt(n);
+const retClr = r => r >= 0 ? 'var(--red)' : 'var(--blue)';
+const retSign= r => r >= 0 ? '+' : '';
+
 function calcCurVal(h) {
-  if (h.type === '예금/현금') {
-    if (h.currency === 'USD' && h.qty > 0) return h.qty * USD_KRW;
-    return h.buy_amt; // cash = cost basis
+  if (h.type==='예금/현금') {
+    if (h.currency==='USD' && h.qty>0) return h.qty * USD_KRW;
+    return h.buy_amt;
   }
-  if (h.currency === 'USD') return h.qty * h.cur_price * USD_KRW;
+  if (h.currency==='USD') return h.qty * h.cur_price * USD_KRW;
   return h.qty * h.cur_price;
 }
 
-// Aggregate portfolio stats
-function calcPortfolio(data) {
-  let totalBuy = 0, totalCur = 0;
-  const enriched = data.map(h => {
+function enrichPortfolio(rows) {
+  let tb=0, tc=0;
+  const enriched = rows.map(h => {
     const curVal = calcCurVal(h);
-    const gain = curVal - h.buy_amt;
-    const ret = h.buy_amt > 0 ? (gain / h.buy_amt) * 100 : 0;
-    totalBuy += h.buy_amt;
-    totalCur += curVal;
-    return { ...h, curVal, gain, ret };
+    const gain   = curVal - h.buy_amt;
+    const ret    = h.buy_amt > 0 ? (gain/h.buy_amt)*100 : 0;
+    tb += h.buy_amt; tc += curVal;
+    return {...h, curVal, gain, ret};
   });
-  const totalGain = totalCur - totalBuy;
-  const totalRet = totalBuy > 0 ? (totalGain / totalBuy) * 100 : 0;
-  return { enriched, totalBuy, totalCur, totalGain, totalRet };
+  return { enriched, totalBuy:tb, totalCur:tc, totalGain:tc-tb, totalRet:tb>0?(tc-tb)/tb*100:0 };
 }
 
-// Group by key
 function groupBy(arr, key) {
-  return arr.reduce((acc, h) => {
-    const k = h[key];
-    if (!acc[k]) acc[k] = { buy: 0, cur: 0, items: [] };
-    acc[k].buy += h.buy_amt;
-    acc[k].cur += h.curVal;
-    acc[k].items.push(h);
-    return acc;
-  }, {});
+  return arr.reduce((acc,h)=>{
+    const k=h[key]; if(!acc[k])acc[k]={buy:0,cur:0,items:[]};
+    acc[k].buy+=h.buy_amt; acc[k].cur+=h.curVal; acc[k].items.push(h); return acc;
+  },{});
 }
 
-// Build portfolio data
-const DATA = {};
-['haein','jiwon','taehyun'].forEach(k => {
-  const raw = RAW[k === 'haein' ? '해인' : k === 'jiwon' ? '지원' : '태현'];
-  DATA[k] = calcPortfolio(raw);
-});
+// computed DATA
+let DATA = {};
+function recompute() {
+  ['haein','jiwon','taehyun'].forEach(k=>{
+    const rawKey = k==='haein'?'해인':k==='jiwon'?'지원':'태현';
+    DATA[k] = enrichPortfolio(workingData[rawKey]);
+  });
+}
 
-// ===================== RENDER SUMMARY CARDS =====================
-function renderSummaryCards() {
-  const el = document.getElementById('summary-cards');
-  el.innerHTML = ['haein','jiwon','taehyun'].map(k => {
-    const d = DATA[k];
-    const retStr = d.totalRet >= 0 ? `+${d.totalRet.toFixed(1)}%` : `${d.totalRet.toFixed(1)}%`;
-    const gainStr = d.totalGain >= 0 ? `+${fmtM(d.totalGain)}` : fmtM(d.totalGain);
-    return `<div class="summary-card ${k}" onclick="showPage('${k}')">
+// chart registry
+const charts = {};
+function mkChart(id, cfg) {
+  if (charts[id]) { charts[id].destroy(); delete charts[id]; }
+  const el = document.getElementById(id);
+  if (el) charts[id] = new Chart(el, cfg);
+}
+
+// ═══════════════════════════════════════════
+// LIVE PRICE FETCH
+// ═══════════════════════════════════════════
+let isLive = false;
+
+// Decide if a holding should have its price updated from Yahoo
+function shouldFetch(h) {
+  if (!h.ticker || h.ticker==='-') return false;
+  if (h.type==='예금/현금') return false;
+  if (h.qty===0) return false;
+  // Skip IRP "bundle" items (qty=1 with very high unit price = total amount)
+  if (h.account==='IRP' && h.qty===1 && h.buy_price>200000 && h.currency==='KRW') return false;
+  return true;
+}
+
+async function fetchLivePrices() {
+  const btn = document.getElementById('btn-refresh');
+  btn.disabled = true; btn.textContent = '⏳ 조회중...';
+  document.getElementById('loading-bar').style.display = 'block';
+
+  // Collect unique tickers
+  const tickerSet = new Set();
+  ['해인','지원','태현'].forEach(k => {
+    workingData[k].forEach(h => { if(shouldFetch(h)) tickerSet.add(h.ticker); });
+  });
+  // Add USD/KRW rate
+  tickerSet.add('USDKRW=X');
+
+  const tickers = [...tickerSet];
+  const priceMap = {};
+
+  // Fetch in chunks of 10
+  for (let i=0; i<tickers.length; i+=10) {
+    const chunk = tickers.slice(i, i+10).join(',');
+    try {
+      const yahooUrl = `${YAHOO}${encodeURIComponent(chunk)}&lang=ko-KR&region=KR`;
+      const res = await fetch(`${PROXY}${encodeURIComponent(yahooUrl)}`, {signal: AbortSignal.timeout(12000)});
+      const json = await res.json();
+      const parsed = JSON.parse(json.contents);
+      (parsed.quoteResponse?.result || []).forEach(q => {
+        priceMap[q.symbol] = q.regularMarketPrice;
+      });
+    } catch(e) { console.warn('Fetch chunk failed', e); }
+  }
+
+  // Update USD/KRW
+  if (priceMap['USDKRW=X']) {
+    USD_KRW = Math.round(priceMap['USDKRW=X']);
+    document.getElementById('usd-rate').textContent = `USD/KRW ${fmt(USD_KRW)}`;
+  }
+
+  // Apply prices to workingData
+  let updated = 0;
+  ['해인','지원','태현'].forEach(k => {
+    workingData[k].forEach(h => {
+      if (shouldFetch(h) && priceMap[h.ticker] != null) {
+        h.cur_price = priceMap[h.ticker];
+        updated++;
+      }
+    });
+  });
+
+  saveData();
+  recompute();
+
+  document.getElementById('loading-bar').style.display = 'none';
+  btn.disabled = false;
+  btn.textContent = '📡 실시간 시세';
+
+  if (updated > 0) {
+    isLive = true;
+    document.getElementById('live-badge').textContent = `● 실시간 (${updated}개 업데이트)`;
+    document.getElementById('live-badge').style.color = '#4ade80';
+    showToast(`✅ ${updated}개 종목 실시간 가격 업데이트 완료`);
+    rerenderCurrent();
+  } else {
+    showToast('⚠️ 가격 조회 실패. 네트워크를 확인하세요.');
+  }
+}
+
+// ═══════════════════════════════════════════
+// DASHBOARD RENDER
+// ═══════════════════════════════════════════
+function renderDashboard() {
+  // Family total
+  const fTotal = ['haein','jiwon','taehyun'].reduce((s,k)=>s+DATA[k].totalCur,0);
+  const fBuy   = ['haein','jiwon','taehyun'].reduce((s,k)=>s+DATA[k].totalBuy,0);
+  const fRet   = (fTotal-fBuy)/fBuy*100;
+  document.getElementById('family-card').innerHTML = `
+    <div>
+      <div style="font-size:13px;opacity:.6;margin-bottom:6px">👨‍👩‍👧‍👦 삼남매 합산 포트폴리오</div>
+      <div class="family-total-val">${fmtM(fTotal)}원</div>
+      <div class="family-total-ret">${retSign(fRet)}${fRet.toFixed(1)}% &nbsp;|&nbsp; ${retSign(fTotal-fBuy)}${fmtM(fTotal-fBuy)}원</div>
+    </div>
+    <div class="family-meta">
+      ${['haein','jiwon','taehyun'].map(k=>`
+        <div class="family-meta-item">
+          <div class="label">${EMOJIS[k]} ${NAMES[k]}</div>
+          <div class="val">${fmtM(DATA[k].totalCur)}원</div>
+          <div style="font-size:11px;opacity:.7;color:${DATA[k].totalRet>=0?'#86efac':'#fca5a5'}">${retSign(DATA[k].totalRet)}${DATA[k].totalRet.toFixed(1)}%</div>
+        </div>`).join('')}
+    </div>`;
+
+  // Summary cards
+  document.getElementById('summary-cards').innerHTML = ['haein','jiwon','taehyun'].map(k=>{
+    const d=DATA[k];
+    return `<div class="sc ${k}" onclick="showPage('${k}')">
       <div class="sc-name">${EMOJIS[k]} ${NAMES[k]}</div>
       <div class="sc-val">${fmtM(d.totalCur)}원</div>
-      <div class="sc-sub">현재 평가금액</div>
-      <div class="sc-ret" style="color:${retColor(d.totalRet)}">${retStr} (${gainStr}원)</div>
-      <div class="sc-meta">
-        <span>투자원금: ${fmtM(d.totalBuy)}원</span>
-        <span>${d.enriched.length}개 종목</span>
+      <div class="sc-ret" style="color:${retClr(d.totalRet)}">${retSign(d.totalRet)}${d.totalRet.toFixed(1)}% &nbsp;(${retSign(d.totalGain)}${fmtM(d.totalGain)}원)</div>
+      <div class="sc-meta"><span>원금 ${fmtM(d.totalBuy)}원</span><span>${d.enriched.length}개 종목</span></div>
+    </div>`;
+  }).join('');
+
+  // Strategy summaries
+  const summaries = {
+    haein: {
+      title:'🔵 유해인 — 성장 집중형',
+      text:`연금·IRP·ISA 세제혜택 계좌 최대 활용. <b>ACE S&P500·나스닥100</b>으로 미국 성장주 비중 높게 가져가는 장기 적립식 전략. 두산에너빌리티(+${calcTopRet('haein')})·로보티즈 개별주 통한 알파 창출 탁월.`,
+      stats:['연금 비중 최대','개별주 알파','나스닥100 집중']
+    },
+    jiwon: {
+      title:'🟢 유지원 — 배당+성장 균형형',
+      text:`ETF 분산 + 배당주 혼합 전략. <b>코리아배당다우존스·ACE배당다우존스</b>로 현금흐름 확보, <b>QQQM·SPYG</b> 해외 ETF 병행. 두산에너빌리티 ISA 편입으로 절세 효과.`,
+      stats:['배당주 병행','해외ETF 보유','절세 계좌 분산']
+    },
+    taehyun: {
+      title:'🟠 유태현 — 국내주식+ETF 혼합형',
+      text:`삼성전자·현대차 등 대형주 직접투자 + 연금 ETF 적립 병행. <b>KODEX 반도체</b> +176% 고성과. 테슬라·QQQM 해외주식 소량 보유로 분산.`,
+      stats:['대형주 직접투자','반도체 섹터','해외주식 보유']
+    }
+  };
+
+  document.getElementById('strategy-cards').innerHTML = ['haein','jiwon','taehyun'].map(k=>{
+    const s=summaries[k]; const d=DATA[k];
+    return `<div class="card" style="border-top:3px solid ${COLORS[k]}">
+      <div style="font-size:13px;font-weight:800;margin-bottom:10px">${s.title}</div>
+      <p class="summary-text" style="margin-bottom:10px">${s.text}</p>
+      <div style="display:flex;gap:6px;flex-wrap:wrap">
+        ${s.stats.map(t=>`<span class="summary-highlight">${t}</span>`).join('')}
       </div>
     </div>`;
   }).join('');
-}
 
-// ===================== COMPARE CHARTS =====================
-function renderCompareCharts() {
-  const labels = ['유해인', '유지원', '유태현'];
-  const keys = ['haein','jiwon','taehyun'];
-  const colors = [COLORS.haein, COLORS.jiwon, COLORS.taehyun];
+  // Charts
+  const labels=['유해인','유지원','유태현'], keys=['haein','jiwon','taehyun'], clrs=[COLORS.haein,COLORS.jiwon,COLORS.taehyun];
 
-  // Total asset chart
-  new Chart(document.getElementById('chart-total'), {
-    type: 'bar',
-    data: {
-      labels,
-      datasets: [
-        { label: '투자원금', data: keys.map(k => DATA[k].totalBuy / 1e8), backgroundColor: colors.map(c => c+'33'), borderColor: colors, borderWidth: 2 },
-        { label: '현재가치', data: keys.map(k => DATA[k].totalCur / 1e8), backgroundColor: colors.map(c => c+'99'), borderColor: colors, borderWidth: 2 }
-      ]
-    },
-    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'top' } },
-      scales: { y: { title: { display: true, text: '억원' } } } }
+  mkChart('chart-total',{type:'bar',data:{labels,datasets:[
+    {label:'투자원금',data:keys.map(k=>+(DATA[k].totalBuy/1e8).toFixed(2)),backgroundColor:clrs.map(c=>c+'33'),borderColor:clrs,borderWidth:2},
+    {label:'현재가치',data:keys.map(k=>+(DATA[k].totalCur/1e8).toFixed(2)),backgroundColor:clrs.map(c=>c+'99'),borderColor:clrs,borderWidth:2}
+  ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'top'}},scales:{y:{ticks:{callback:v=>v+'억'}}}}});
+
+  mkChart('chart-return',{type:'bar',data:{labels,datasets:[{
+    label:'수익률',data:keys.map(k=>+DATA[k].totalRet.toFixed(1)),
+    backgroundColor:clrs.map(c=>c+'bb'),borderColor:clrs,borderWidth:2
+  }]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>c.raw+'%'}}},scales:{y:{ticks:{callback:v=>v+'%'}}}}});
+
+  keys.forEach(k=>{
+    const byType={};
+    DATA[k].enriched.forEach(h=>{if(!byType[h.type])byType[h.type]=0;byType[h.type]+=h.curVal;});
+    const tl=Object.keys(byType), tv=Object.values(byType);
+    mkChart(`chart-${k}-type`,{type:'doughnut',data:{labels:tl,datasets:[{data:tv,backgroundColor:tl.map(t=>TYPE_COLORS[t]||'#94a3b8'),borderWidth:2}]},
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{font:{size:10},boxWidth:10}},
+        tooltip:{callbacks:{label:c=>`${c.label}: ${fmtM(c.raw)}원 (${(c.raw/DATA[k].totalCur*100).toFixed(1)}%)`}}}}});
   });
 
-  // Return chart
-  new Chart(document.getElementById('chart-return'), {
-    type: 'bar',
-    data: {
-      labels,
-      datasets: [{ label: '수익률(%)', data: keys.map(k => +DATA[k].totalRet.toFixed(1)),
-        backgroundColor: colors.map(c => c+'bb'), borderColor: colors, borderWidth: 2 }]
-    },
-    options: { responsive: true, maintainAspectRatio: false,
-      plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => ctx.raw + '%' } } },
-      scales: { y: { ticks: { callback: v => v + '%' } } } }
-  });
-
-  // Type pie charts
-  keys.forEach(k => {
-    const byType = {};
-    DATA[k].enriched.forEach(h => {
-      if (!byType[h.type]) byType[h.type] = 0;
-      byType[h.type] += h.curVal;
-    });
-    const typeLabels = Object.keys(byType);
-    const typeVals = Object.values(byType);
-    new Chart(document.getElementById(`chart-${k}-type`), {
-      type: 'doughnut',
-      data: {
-        labels: typeLabels,
-        datasets: [{ data: typeVals, backgroundColor: typeLabels.map(t => TYPE_COLORS[t] || '#94a3b8'), borderWidth: 2 }]
-      },
-      options: { responsive: true, maintainAspectRatio: false,
-        plugins: { legend: { position: 'bottom', labels: { font: { size: 11 }, boxWidth: 12 } },
-          tooltip: { callbacks: { label: ctx => `${ctx.label}: ${fmtM(ctx.raw)}원 (${(ctx.raw/DATA[k].totalCur*100).toFixed(1)}%)` } } }
-      }
-    });
-  });
-}
-
-// ===================== COMPARE TABLE =====================
-function renderCompareTable() {
-  const rows = [
-    ['구분', '유해인🔵', '유지원🟢', '유태현🟠'],
-    ['투자 원금', ...['haein','jiwon','taehyun'].map(k => fmtM(DATA[k].totalBuy) + '원')],
-    ['현재 평가액', ...['haein','jiwon','taehyun'].map(k => fmtM(DATA[k].totalCur) + '원')],
-    ['수익금', ...['haein','jiwon','taehyun'].map(k => {
-      const d = DATA[k]; const s = d.totalGain >= 0 ? '+' : ''; return s + fmtM(d.totalGain) + '원';
-    })],
-    ['수익률', ...['haein','jiwon','taehyun'].map(k => {
-      const r = DATA[k].totalRet; return (r>=0?'+':'') + r.toFixed(1) + '%';
-    })],
-    ['보유종목수', ...['haein','jiwon','taehyun'].map(k => DATA[k].enriched.length + '개')],
+  // Compare table
+  const cmpKeys=['haein','jiwon','taehyun'];
+  const cmpRows=[
+    ['구분','유해인 🔵','유지원 🟢','유태현 🟠'],
+    ['투자 원금',...cmpKeys.map(k=>fmtM(DATA[k].totalBuy)+'원')],
+    ['현재 평가액',...cmpKeys.map(k=>fmtM(DATA[k].totalCur)+'원')],
+    ['평가 손익',...cmpKeys.map(k=>`${retSign(DATA[k].totalGain)}${fmtM(DATA[k].totalGain)}원`)],
+    ['수익률',...cmpKeys.map(k=>`${retSign(DATA[k].totalRet)}${DATA[k].totalRet.toFixed(1)}%`)],
+    ['보유종목',...cmpKeys.map(k=>DATA[k].enriched.length+'개')],
   ];
-
-  const personKeys = ['haein','jiwon','taehyun'];
-  let html = '<thead><tr>';
-  rows[0].forEach((h, i) => { html += `<th>${h}</th>`; });
-  html += '</tr></thead><tbody>';
-  for (let i = 1; i < rows.length; i++) {
-    html += '<tr>';
-    rows[i].forEach((cell, ci) => {
-      let cls = '';
-      if (ci > 0) cls = `cmp-cell-${personKeys[ci-1]}`;
-      let style = '';
-      // Color return rows
-      if (i === 3 || i === 4) {
-        const isNeg = cell.startsWith('-');
-        style = `color:${isNeg ? '#3b82f6' : '#ef4444'};`;
-      }
-      html += `<td class="${cls}" style="${style}">${cell}</td>`;
-    });
-    html += '</tr>';
+  const cellClr=['','haein','jiwon','taehyun'];
+  let ht=`<thead><tr>${cmpRows[0].map(h=>`<th>${h}</th>`).join('')}</tr></thead><tbody>`;
+  for(let i=1;i<cmpRows.length;i++){
+    ht+=`<tr>${cmpRows[i].map((c,ci)=>{
+      const isRet=(i===3||i===4), neg=c.startsWith('-');
+      const col = isRet?`color:${neg?'var(--blue)':'var(--red)'};font-weight:700;`:'';
+      const bg = ci>0?`background:${ci===1?'var(--haein-light)':ci===2?'var(--jiwon-light)':'var(--taehyun-light)'};`:'';
+      return `<td style="${bg}${col}">${c}</td>`;
+    }).join('')}</tr>`;
   }
-  html += '</tbody>';
-  document.getElementById('compare-table').innerHTML = html;
-}
+  ht+='</tbody>';
+  document.getElementById('compare-table').innerHTML=ht;
 
-// ===================== COMMON STOCKS =====================
-function renderCommonStocks() {
-  const nameMap = {};
-  ['haein','jiwon','taehyun'].forEach(k => {
-    DATA[k].enriched.forEach(h => {
-      if (h.type === '예금/현금') return;
-      if (!nameMap[h.name]) nameMap[h.name] = {};
-      if (!nameMap[h.name][k]) nameMap[h.name][k] = { buy: 0, cur: 0 };
-      nameMap[h.name][k].buy += h.buy_amt;
-      nameMap[h.name][k].cur += h.curVal;
+  // Common stocks
+  const nm={};
+  ['haein','jiwon','taehyun'].forEach(k=>{
+    DATA[k].enriched.forEach(h=>{
+      if(h.type==='예금/현금')return;
+      if(!nm[h.name])nm[h.name]={};
+      if(!nm[h.name][k])nm[h.name][k]={buy:0,cur:0};
+      nm[h.name][k].buy+=h.buy_amt; nm[h.name][k].cur+=h.curVal;
     });
   });
-
-  const common = Object.entries(nameMap).filter(([_, v]) => Object.keys(v).length >= 2)
-    .sort((a,b) => {
-      const aTotal = Object.values(a[1]).reduce((s,v) => s+v.cur, 0);
-      const bTotal = Object.values(b[1]).reduce((s,v) => s+v.cur, 0);
-      return bTotal - aTotal;
+  const common=Object.entries(nm).filter(([,v])=>Object.keys(v).length>=2)
+    .sort((a,b)=>Object.values(b[1]).reduce((s,v)=>s+v.cur,0)-Object.values(a[1]).reduce((s,v)=>s+v.cur,0));
+  let ct=`<thead><tr><th>종목명</th><th>유해인</th><th>유지원</th><th>유태현</th></tr></thead><tbody>`;
+  common.forEach(([n,bp])=>{
+    ct+=`<tr><td><strong>${n}</strong></td>`;
+    ['haein','jiwon','taehyun'].forEach(k=>{
+      if(bp[k]){const r=(bp[k].cur-bp[k].buy)/bp[k].buy*100;ct+=`<td>${fmtM(bp[k].cur)}원 <span style="color:${retClr(r)};font-size:11px">${retSign(r)}${r.toFixed(1)}%</span></td>`;}
+      else ct+=`<td style="color:#cbd5e1">—</td>`;
     });
-
-  let html = `<thead><tr><th>종목명</th><th>해인</th><th>지원</th><th>태현</th></tr></thead><tbody>`;
-  common.forEach(([name, byP]) => {
-    html += `<tr><td><strong>${name}</strong></td>`;
-    ['haein','jiwon','taehyun'].forEach(k => {
-      if (byP[k]) {
-        const r = ((byP[k].cur - byP[k].buy) / byP[k].buy * 100);
-        html += `<td>${fmtM(byP[k].cur)}원 <span style="color:${retColor(r)};font-size:11px">${r>=0?'+':''}${r.toFixed(1)}%</span></td>`;
-      } else html += '<td style="color:#94a3b8">-</td>';
-    });
-    html += '</tr>';
+    ct+='</tr>';
   });
-  html += '</tbody>';
-  document.getElementById('common-table').innerHTML = html;
+  ct+='</tbody>';
+  document.getElementById('common-table').innerHTML=ct;
 }
 
-// ===================== INDIVIDUAL PAGE =====================
+function calcTopRet(key) {
+  const top = DATA[key].enriched.filter(h=>h.type!=='예금/현금' && h.qty>1)
+    .sort((a,b)=>b.ret-a.ret)[0];
+  return top ? retSign(top.ret)+top.ret.toFixed(0)+'%' : '-';
+}
+
+// ═══════════════════════════════════════════
+// INDIVIDUAL RENDER
+// ═══════════════════════════════════════════
 function renderIndividual(key) {
-  const d = DATA[key];
-  const color = COLORS[key];
-  const name = NAMES[key];
-  const acctGroups = groupBy(d.enriched, 'account');
-  const typeGroups = groupBy(d.enriched, 'type');
-  const acctKeys = Object.keys(acctGroups);
-  const typeKeys = Object.keys(typeGroups);
+  const d = DATA[key], rawKey=key==='haein'?'해인':key==='jiwon'?'지원':'태현';
+  const acctG = groupBy(d.enriched,'account'), typeG = groupBy(d.enriched,'type');
+  const acctK = Object.keys(acctG), typeK = Object.keys(typeG);
 
-  const retStr = d.totalRet >= 0 ? `+${d.totalRet.toFixed(1)}%` : `${d.totalRet.toFixed(1)}%`;
-  const gainStr = d.totalGain >= 0 ? `+${fmtM(d.totalGain)}` : fmtM(d.totalGain);
+  const sorted = [...d.enriched].sort((a,b)=>b.gain-a.gain);
 
-  // Sort holdings by gain amount desc
-  const sorted = [...d.enriched].sort((a,b) => b.gain - a.gain);
-
-  let html = `
+  document.getElementById(`detail-${key}`).innerHTML = `
     <div class="stats-grid">
-      <div class="stat-box"><div class="stat-label">투자 원금</div><div class="stat-value" style="color:${color}">${fmtM(d.totalBuy)}원</div></div>
+      <div class="stat-box"><div class="stat-label">투자 원금</div><div class="stat-value" style="color:${COLORS[key]}">${fmtM(d.totalBuy)}원</div></div>
       <div class="stat-box"><div class="stat-label">현재 평가액</div><div class="stat-value">${fmtM(d.totalCur)}원</div></div>
-      <div class="stat-box"><div class="stat-label">평가 손익</div><div class="stat-value" style="color:${retColor(d.totalGain)}">${gainStr}원</div></div>
-      <div class="stat-box"><div class="stat-label">수익률</div><div class="stat-value" style="color:${retColor(d.totalRet)}">${retStr}</div></div>
+      <div class="stat-box"><div class="stat-label">평가 손익</div><div class="stat-value" style="color:${retClr(d.totalGain)}">${retSign(d.totalGain)}${fmtM(d.totalGain)}원</div></div>
+      <div class="stat-box"><div class="stat-label">수익률</div><div class="stat-value" style="color:${retClr(d.totalRet)}">${retSign(d.totalRet)}${d.totalRet.toFixed(1)}%</div></div>
     </div>
 
     <div class="grid-2">
       <div class="card">
         <h3>계좌별 현황</h3>
-        <div style="display:flex;gap:20px;align-items:flex-start">
-          <div style="position:relative;height:200px;width:200px;flex-shrink:0">
-            <canvas id="chart-${key}-acct"></canvas>
-          </div>
-          <div class="acct-list" style="flex:1;margin-top:8px">
-            ${acctKeys.map((a, i) => {
-              const g = acctGroups[a];
-              const pct = (g.cur / d.totalCur * 100).toFixed(1);
-              const ret = ((g.cur - g.buy) / g.buy * 100).toFixed(1);
+        <div style="display:flex;gap:16px;align-items:flex-start">
+          <div style="width:170px;height:170px;flex-shrink:0"><canvas id="chart-${key}-acct"></canvas></div>
+          <div class="acct-list" style="flex:1;margin-top:6px">
+            ${acctK.map((a,i)=>{const g=acctG[a];const r=((g.cur-g.buy)/g.buy*100).toFixed(1);
               return `<div class="acct-item">
-                <div class="acct-dot" style="background:${ACCT_COLORS[i % ACCT_COLORS.length]}"></div>
-                <div class="acct-name"><strong>${a}</strong></div>
+                <div class="acct-dot" style="background:${ACCT_COLORS[i%ACCT_COLORS.length]}"></div>
+                <div class="acct-name">${a}</div>
                 <div class="acct-val">${fmtM(g.cur)}원</div>
-                <div class="acct-pct" style="color:${retColor(+ret)}">${ret>=0?'+':''}${ret}%</div>
-                <div style="width:50px;font-size:11px;color:#94a3b8;text-align:right">${pct}%</div>
-              </div>`;
-            }).join('')}
+                <div class="acct-ret" style="color:${retClr(+r)}">${retSign(+r)}${r}%</div>
+              </div>`;}).join('')}
           </div>
         </div>
       </div>
       <div class="card">
-        <h3>자산유형별 현황</h3>
-        <div style="display:flex;gap:20px;align-items:flex-start">
-          <div style="position:relative;height:200px;width:200px;flex-shrink:0">
-            <canvas id="chart-${key}-type2"></canvas>
-          </div>
-          <div class="acct-list" style="flex:1;margin-top:8px">
-            ${typeKeys.map((t, i) => {
-              const g = typeGroups[t];
-              const pct = (g.cur / d.totalCur * 100).toFixed(1);
-              const ret = ((g.cur - g.buy) / g.buy * 100).toFixed(1);
+        <h3>자산유형별</h3>
+        <div style="display:flex;gap:16px;align-items:flex-start">
+          <div style="width:170px;height:170px;flex-shrink:0"><canvas id="chart-${key}-type"></canvas></div>
+          <div class="acct-list" style="flex:1;margin-top:6px">
+            ${typeK.map(t=>{const g=typeG[t];const r=((g.cur-g.buy)/g.buy*100).toFixed(1);
               return `<div class="acct-item">
                 <div class="acct-dot" style="background:${TYPE_COLORS[t]||'#94a3b8'}"></div>
-                <div class="acct-name"><strong>${t}</strong></div>
+                <div class="acct-name">${t}</div>
                 <div class="acct-val">${fmtM(g.cur)}원</div>
-                <div class="acct-pct" style="color:${retColor(+ret)}">${ret>=0?'+':''}${ret}%</div>
-                <div style="width:50px;font-size:11px;color:#94a3b8;text-align:right">${pct}%</div>
-              </div>`;
-            }).join('')}
+                <div class="acct-ret" style="color:${retClr(+r)}">${retSign(+r)}${r}%</div>
+              </div>`;}).join('')}
           </div>
         </div>
       </div>
     </div>
 
     <div class="card">
-      <h3>📋 보유종목 전체 현황</h3>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px">
+        <h3 style="margin:0">📋 보유종목 (${d.enriched.length}개)</h3>
+        <div style="display:flex;gap:8px">
+          <button class="btn-reset" onclick="if(confirm('원본 데이터로 초기화?')){resetData('${key}');recompute();renderIndividual('${key}')}">🔄 초기화</button>
+          <button class="btn-add" onclick="openModal('${key}',-1)">+ 종목 추가</button>
+        </div>
+      </div>
       <div class="filter-bar" id="filter-${key}">
-        <span style="font-size:12px;color:#64748b;margin-right:4px">계좌:</span>
-        <button class="filter-btn active" onclick="filterTable('${key}', 'all', this)">전체</button>
-        ${acctKeys.map(a => `<button class="filter-btn" onclick="filterTable('${key}', '${a}', this)">${a}</button>`).join('')}
+        <span style="font-size:11px;color:var(--sub)">계좌:</span>
+        <button class="filter-btn active" onclick="filterTable('${key}','all',this)">전체</button>
+        ${acctK.map(a=>`<button class="filter-btn" onclick="filterTable('${key}','${a}',this)">${a}</button>`).join('')}
       </div>
       <div class="table-wrap">
-        <table id="table-${key}">
-          <thead>
-            <tr>
-              <th onclick="sortTable('${key}','name')">종목명 ↕</th>
-              <th onclick="sortTable('${key}','account')">계좌</th>
-              <th onclick="sortTable('${key}','type')">유형</th>
-              <th onclick="sortTable('${key}','buy_amt')" style="text-align:right">매수금액 ↕</th>
-              <th onclick="sortTable('${key}','curVal')" style="text-align:right">현재가치 ↕</th>
-              <th onclick="sortTable('${key}','gain')" style="text-align:right">손익 ↕</th>
-              <th onclick="sortTable('${key}','ret')" style="text-align:right">수익률 ↕</th>
-            </tr>
-          </thead>
-          <tbody id="tbody-${key}"></tbody>
-        </table>
-      </div>
-    </div>`;
-
-  document.getElementById(`detail-${key}`).innerHTML = html;
-
-  // Render table
-  renderTable(key, sorted);
-
-  // Charts
-  setTimeout(() => {
-    // Account donut
-    new Chart(document.getElementById(`chart-${key}-acct`), {
-      type: 'doughnut',
-      data: {
-        labels: acctKeys,
-        datasets: [{ data: acctKeys.map(a => acctGroups[a].cur), backgroundColor: acctKeys.map((_,i) => ACCT_COLORS[i % ACCT_COLORS.length]), borderWidth: 2 }]
-      },
-      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
-    });
-    // Type donut
-    new Chart(document.getElementById(`chart-${key}-type2`), {
-      type: 'doughnut',
-      data: {
-        labels: typeKeys,
-        datasets: [{ data: typeKeys.map(t => typeGroups[t].cur), backgroundColor: typeKeys.map(t => TYPE_COLORS[t]||'#94a3b8'), borderWidth: 2 }]
-      },
-      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
-    });
-  }, 50);
-}
-
-function typeBadge(t) {
-  const cls = { '국내ETF': 'badge-etf', '국내주식': 'badge-stock', '미국ETF': 'badge-usetf', '미국주식': 'badge-usetf', '예금/현금': 'badge-cash' };
-  return `<span class="badge ${cls[t]||'badge-cash'}">${t}</span>`;
-}
-
-function renderTable(key, data) {
-  const tbody = document.getElementById(`tbody-${key}`);
-  tbody.innerHTML = data.map(h => {
-    const retStr = h.ret >= 0 ? `+${h.ret.toFixed(1)}%` : `${h.ret.toFixed(1)}%`;
-    const gainStr = h.gain >= 0 ? `+${fmtM(h.gain)}` : fmtM(h.gain);
-    return `<tr>
-      <td><strong>${h.name}</strong><br><span style="font-size:11px;color:#94a3b8">${h.ticker || h.code}</span></td>
-      <td><span class="badge badge-acct">${h.account}</span></td>
-      <td>${typeBadge(h.type)}</td>
-      <td style="text-align:right">${fmtM(h.buy_amt)}원</td>
-      <td style="text-align:right">${fmtM(h.curVal)}원</td>
-      <td style="text-align:right;color:${retColor(h.gain)}">${gainStr}원</td>
-      <td style="text-align:right;color:${retColor(h.ret)};font-weight:700">${retStr}</td>
-    </tr>`;
-  }).join('');
-}
-
-let sortState = {};
-function sortTable(key, col) {
-  const d = DATA[key].enriched;
-  if (sortState[key] === col) { d.reverse(); sortState[key] = null; }
-  else {
-    d.sort((a,b) => {
-      const va = a[col], vb = b[col];
-      return typeof va === 'string' ? va.localeCompare(vb) : vb - va;
-    });
-    sortState[key] = col;
-  }
-  const filter = document.querySelector(`#filter-${key} .filter-btn.active`)?.textContent || '전체';
-  if (filter === '전체') renderTable(key, d);
-  else renderTable(key, d.filter(h => h.account === filter));
-}
-
-function filterTable(key, acct, btn) {
-  document.querySelectorAll(`#filter-${key} .filter-btn`).forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-  const d = DATA[key].enriched;
-  renderTable(key, acct === 'all' ? d : d.filter(h => h.account === acct));
-}
-
-// ===================== PAGE ROUTING =====================
-const pageRendered = {};
-function showPage(p) {
-  document.querySelectorAll('.page').forEach(el => el.classList.remove('active'));
-  document.getElementById(`page-${p}`).classList.add('active');
-  document.querySelectorAll('.nav-tab').forEach(t => t.className = 'nav-tab');
-  const tab = document.getElementById(`tab-${p}`);
-  tab.className = `nav-tab active-${p}`;
-
-  if (!pageRendered[p]) {
-    pageRendered[p] = true;
-    if (['haein','jiwon','taehyun'].includes(p)) renderIndividual(p);
-  }
-}
-
-// ===================== INIT =====================
-renderSummaryCards();
-renderCompareCharts();
-renderCompareTable();
-renderCommonStocks();
-pageRendered['compare'] = true;
-</script>
-</body>
-</html>
+        <table class="mob-card" id="table-${key}">
+          <thead><tr>
+            <th onclick="sortTable('${key}','name')">종목명↕</th>
+            <th onclick="sortTable('${key}','account')">계좌↕</th>
+            <th onclick="sortTable('${key}','type')">유형</th>
+            <th onclick="sortTable('${key}','qty')" style="text-align:right">수량↕</th>
+            <th onclick="sortTable('${key}','buy_amt')" style="text-align:right">매수금액↕</th>
+            <th onclick="sortTable('${key}','cu
