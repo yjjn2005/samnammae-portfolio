@@ -669,4 +669,185 @@ function renderIndividual(key) {
             <th onclick="sortTable('${key}','type')">유형</th>
             <th onclick="sortTable('${key}','qty')" style="text-align:right">수량↕</th>
             <th onclick="sortTable('${key}','buy_amt')" style="text-align:right">매수금액↕</th>
-            <th onclick="sortTable('${key}','cu
+            <th onclick="sortTable('${key}','curVal')" style="text-align:right">현재가치↕</th>
+            <th onclick="sortTable('${key}','gain')" style="text-align:right">손익↕</th>
+            <th onclick="sortTable('${key}','ret')" style="text-align:right">수익률↕</th>
+            <th style="text-align:center">편집</th>
+          </tr></thead>
+          <tbody id="tbody-${key}"></tbody>
+        </table>
+      </div>
+    </div>`;
+
+  renderTable(key, sorted);
+
+  setTimeout(()=>{
+    mkChart('chart-'+key+'-acct',{type:'doughnut',data:{labels:acctK,datasets:[{data:acctK.map(a=>acctG[a].cur),backgroundColor:acctK.map((_,i)=>ACCT_COLORS[i%ACCT_COLORS.length]),borderWidth:2}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}}}});
+    mkChart('chart-'+key+'-type',{type:'doughnut',data:{labels:typeK,datasets:[{data:typeK.map(t=>typeG[t].cur),backgroundColor:typeK.map(t=>TYPE_COLORS[t]||'#94a3b8'),borderWidth:2}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}}}});
+  },50);
+}
+
+function typeBadge(t){
+  var c={'국내ETF':'badge-etf','국내주식':'badge-stock','미국ETF':'badge-usetf','미국주식':'badge-usetf','예금/현금':'badge-cash'};
+  return '<span class="badge '+(c[t]||'badge-cash')+'">'+t+'</span>';
+}
+
+function renderTable(key, data) {
+  var tbody = document.getElementById('tbody-'+key);
+  if (!tbody) return;
+  tbody.innerHTML = data.map(function(h) {
+    var rStr = (h.ret>=0?'+':'')+h.ret.toFixed(1)+'%';
+    var gStr = (h.gain>=0?'+':'')+fmtM(h.gain)+'원';
+    var origIdx = DATA[key].enriched.indexOf(h);
+    var liveTag = isLive && h.type!=='예금/현금' && h.ticker!=='-' ? ' <span class="badge badge-live">LIVE</span>' : '';
+    return '<tr>'
+      +'<td data-label="종목명"><strong>'+h.name+'</strong>'+liveTag+'<br><span style="font-size:10px;color:#94a3b8">'+h.ticker+'</span></td>'
+      +'<td data-label="계좌"><span class="badge badge-acct">'+h.account+'</span></td>'
+      +'<td data-label="유형">'+typeBadge(h.type)+'</td>'
+      +'<td data-label="수량" style="text-align:right">'+fmt(h.qty)+'</td>'
+      +'<td data-label="매수금액" style="text-align:right">'+fmtM(h.buy_amt)+'원</td>'
+      +'<td data-label="현재가치" style="text-align:right">'+fmtM(h.curVal)+'원</td>'
+      +'<td data-label="손익" style="text-align:right;color:'+retClr(h.gain)+'">'+gStr+'</td>'
+      +'<td data-label="수익률" style="text-align:right;color:'+retClr(h.ret)+';font-weight:700">'+rStr+'</td>'
+      +'<td style="text-align:center" data-label="편집"><button class="btn-edit" onclick="openModal(''+key+'','+origIdx+')">✏️</button></td>'
+      +'</tr>';
+  }).join('');
+}
+
+var sortState={};
+function sortTable(key, col) {
+  var d=DATA[key].enriched;
+  if(sortState[key]===col){d.reverse();sortState[key]=null;}
+  else{d.sort(function(a,b){return typeof a[col]==='string'?a[col].localeCompare(b[col]):b[col]-a[col];});sortState[key]=col;}
+  var fb=document.querySelector('#filter-'+key+' .filter-btn.active');
+  var acct=fb?fb.textContent:'전체';
+  renderTable(key, acct==='전체'?d:d.filter(function(h){return h.account===acct;}));
+}
+function filterTable(key, acct, btn) {
+  document.querySelectorAll('#filter-'+key+' .filter-btn').forEach(function(b){b.classList.remove('active');});
+  btn.classList.add('active');
+  renderTable(key, acct==='all'?DATA[key].enriched:DATA[key].enriched.filter(function(h){return h.account===acct;}));
+}
+
+// ═══════════════════════════════════════════
+// MODAL
+// ═══════════════════════════════════════════
+var modalKey='', modalIdx=-1;
+
+function openModal(key, idx) {
+  modalKey=key; modalIdx=idx;
+  document.getElementById('modal-title').textContent = idx===-1?'✨ 종목 추가':'✏️ 종목 편집';
+  document.getElementById('btn-modal-del').style.display = idx===-1?'none':'block';
+  if (idx===-1) {
+    ['m-name','m-broker','m-code','m-ticker'].forEach(function(id){document.getElementById(id).value='';});
+    ['m-qty','m-buy-price','m-buy-amt','m-cur-price'].forEach(function(id){document.getElementById(id).value='0';});
+    document.getElementById('m-acct').value='위탁';
+    document.getElementById('m-type').value='국내ETF';
+    document.getElementById('m-currency').value='KRW';
+  } else {
+    var h=DATA[key].enriched[idx];
+    document.getElementById('m-name').value=h.name;
+    document.getElementById('m-broker').value=h.broker;
+    document.getElementById('m-acct').value=h.account;
+    document.getElementById('m-type').value=h.type;
+    document.getElementById('m-currency').value=h.currency;
+    document.getElementById('m-code').value=h.code||'';
+    document.getElementById('m-ticker').value=h.ticker||'';
+    document.getElementById('m-qty').value=h.qty;
+    document.getElementById('m-buy-price').value=h.buy_price;
+    document.getElementById('m-buy-amt').value=h.buy_amt;
+    document.getElementById('m-cur-price').value=h.cur_price;
+  }
+  document.getElementById('modal').classList.add('open');
+}
+function closeModal(){document.getElementById('modal').classList.remove('open');}
+
+function updateBuyAmt(){
+  var q=+document.getElementById('m-qty').value||0;
+  var p=+document.getElementById('m-buy-price').value||0;
+  document.getElementById('m-buy-amt').value=Math.round(q*p);
+}
+
+function saveHolding(){
+  var rawKey=modalKey==='haein'?'해인':modalKey==='jiwon'?'지원':'태현';
+  var h={
+    name:document.getElementById('m-name').value.trim(),
+    broker:document.getElementById('m-broker').value.trim(),
+    account:document.getElementById('m-acct').value,
+    type:document.getElementById('m-type').value,
+    currency:document.getElementById('m-currency').value,
+    code:document.getElementById('m-code').value.trim()||'-',
+    ticker:document.getElementById('m-ticker').value.trim()||'-',
+    qty:+document.getElementById('m-qty').value||0,
+    buy_price:+document.getElementById('m-buy-price').value||0,
+    buy_amt:+document.getElementById('m-buy-amt').value||0,
+    cur_price:+document.getElementById('m-cur-price').value||0,
+    no:Date.now()
+  };
+  if(!h.name){showToast('⚠️ 종목명을 입력하세요');return;}
+  if(modalIdx===-1){
+    workingData[rawKey].push(h);
+  } else {
+    var origH=DATA[modalKey].enriched[modalIdx];
+    var wi=workingData[rawKey].findIndex(function(x){return x.no===origH.no;});
+    if(wi>=0) Object.assign(workingData[rawKey][wi],h);
+  }
+  saveData(); recompute();
+  closeModal();
+  renderIndividual(modalKey);
+  showToast(modalIdx===-1?'✅ 종목 추가 완료':'✅ 수정 완료');
+  if(currentPage==='dashboard'){rendered['dashboard']=false;renderDashboard();}
+}
+
+function deleteHolding(){
+  if(!confirm('이 종목을 삭제하시겠습니까?'))return;
+  var rawKey=modalKey==='haein'?'해인':modalKey==='jiwon'?'지원':'태현';
+  var origH=DATA[modalKey].enriched[modalIdx];
+  var wi=workingData[rawKey].findIndex(function(x){return x.no===origH.no;});
+  if(wi>=0) workingData[rawKey].splice(wi,1);
+  saveData(); recompute();
+  closeModal();
+  renderIndividual(modalKey);
+  showToast('🗑 종목 삭제 완료');
+}
+
+// ═══════════════════════════════════════════
+// ROUTING
+// ═══════════════════════════════════════════
+var currentPage='dashboard';
+var rendered={};
+
+function showPage(p){
+  document.querySelectorAll('.page').forEach(function(el){el.classList.remove('active');});
+  document.getElementById('page-'+p).classList.add('active');
+  document.querySelectorAll('.nav-tab').forEach(function(t){t.className='nav-tab';});
+  document.getElementById('tab-'+p).className='nav-tab active-'+p;
+  currentPage=p;
+  if(!rendered[p]){rendered[p]=true;renderPage(p);}
+}
+function renderPage(p){
+  if(p==='dashboard') renderDashboard();
+  else renderIndividual(p);
+}
+
+// ═══════════════════════════════════════════
+// TOAST
+// ═══════════════════════════════════════════
+var toastTimer;
+function showToast(msg){
+  var t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer=setTimeout(function(){t.classList.remove('show');},3000);
+}
+
+// ═══════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════
+document.getElementById('modal').addEventListener('click',function(e){if(e.target===this)closeModal();});
+loadData();
+recompute();
+showPage('dashboard');
+</script>
+</body>
+</html>
